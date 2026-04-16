@@ -71,7 +71,6 @@ const AnalyzePage = () => {
 
       {/* Header */}
       <div className="max-w-7xl mx-auto px-4 w-full py-8">
-        {/* Header Section */}
         <div className="flex justify-between items-start mb-6">
           <div>
             <h1 className="text-xl font-bold text-gray-900 mb-1">
