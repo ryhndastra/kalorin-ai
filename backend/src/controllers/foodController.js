@@ -1,5 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../config/prisma");
 
 const getAllFoods = async (req, res) => {
   try {
@@ -14,8 +13,17 @@ const getAllFoods = async (req, res) => {
 
 const getFoodById = async (req, res) => {
   try {
+    const foodId = Number(req.params.id);
+
+    if (!Number.isInteger(foodId) || foodId <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid food ID",
+      });
+    }
+
     const food = await prisma.food.findUnique({
-      where: { id: parseInt(req.params.id) },
+      where: { id: foodId },
     });
     if (!food)
       return res.status(404).json({ message: "Makanan tidak ditemukan" });

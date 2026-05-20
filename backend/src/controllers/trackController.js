@@ -1,5 +1,12 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../config/prisma");
+const {
+  getJakartaDayRange,
+  formatJakartaWeekday,
+} = require("../utils/dateUtils");
+const {
+  hasInvalidNumber,
+  isPositiveNumber,
+} = require("../utils/requestValidation");
 
 // ADD MEAL TO DAILY LOG
 const addMealLog = async (req, res) => {
@@ -24,11 +31,18 @@ const addMealLog = async (req, res) => {
       });
     }
 
+    if (
+      hasInvalidNumber(req.body, ["calories", "proteins", "fat", "carbs"]) ||
+      (!isPositiveNumber(quantity) && quantity !== undefined)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid numeric fields",
+      });
+    }
+
     // GET DAY NAME
-    const today = new Date();
-    const day = today.toLocaleDateString("en-US", {
-      weekday: "long",
-    });
+    const day = formatJakartaWeekday(new Date());
 
     // CREATE DAILY LOG
     const mealLog = await prisma.dailyLog.create({
@@ -72,18 +86,16 @@ const getDailyLogs = async (req, res) => {
       });
     }
 
-    // DEFAULT TODAY
-    const selectedDate = date ? new Date(`${date}T00:00:00`) : new Date();
+    const dayRange = getJakartaDayRange(date);
 
-    // START OF DAY
-    const startOfDay = new Date(selectedDate);
+    if (!dayRange) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid date format. Use YYYY-MM-DD",
+      });
+    }
 
-    startOfDay.setHours(0, 0, 0, 0);
-
-    // END OF DAY
-    const endOfDay = new Date(selectedDate);
-
-    endOfDay.setHours(23, 59, 59, 999);
+    const { startOfDay, endOfDay } = dayRange;
 
     // FETCH LOGS
     const logs = await prisma.dailyLog.findMany({

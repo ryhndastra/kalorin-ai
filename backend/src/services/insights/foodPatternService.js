@@ -1,21 +1,17 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../../config/prisma");
+const { getJakartaRollingRange } = require("../../utils/dateUtils");
 
 // GET FOOD PATTERN ANALYSIS
 const getFoodPatternService = async (userId) => {
-  // DATE RANGE
-  const today = new Date();
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(today.getDate() - 6);
-  sevenDaysAgo.setHours(0, 0, 0, 0);
+  const { startOfRange, endOfRange } = getJakartaRollingRange(7);
 
   // FETCH LOGS
   const logs = await prisma.dailyLog.findMany({
     where: {
       userId,
-      date: {
-        gte: sevenDaysAgo,
-        lte: today,
+        date: {
+        gte: startOfRange,
+        lte: endOfRange,
       },
     },
     orderBy: {

@@ -11,14 +11,25 @@ redisClient.on("error", (err) => console.error("❌ Redis Error:", err));
 redisClient.on("connect", () => console.log("✅ Redis connected"));
 
 (async () => {
-  if (!redisClient.isOpen) await redisClient.connect();
+  try {
+    if (!redisClient.isOpen) {
+      await redisClient.connect();
+    }
+  } catch (error) {
+    console.error("❌ Redis Connect Error:", error.message);
+  }
 })();
 
 const REDIS_PREFIX = "ai:recommend:";
-const REDIS_TTL = CACHE_TTL || 3600;
+const REDIS_TTL_SECONDS = Math.max(
+  1,
+  Math.floor((CACHE_TTL || 1800000) / 1000),
+);
 
 const getRedisCache = async (key) => {
   try {
+    if (!redisClient.isReady) return null;
+
     const data = await redisClient.get(`${REDIS_PREFIX}${key}`);
     return data ? JSON.parse(data) : null;
   } catch {
@@ -28,9 +39,11 @@ const getRedisCache = async (key) => {
 
 const setRedisCache = async (key, value) => {
   try {
+    if (!redisClient.isReady) return;
+
     await redisClient.setEx(
       `${REDIS_PREFIX}${key}`,
-      REDIS_TTL,
+      REDIS_TTL_SECONDS,
       JSON.stringify(value),
     );
   } catch {
@@ -207,6 +220,10 @@ const requestInsight = async (payload) => {
   return await deduplicatedPost("/api/daily-insight", payload);
 };
 
+const requestBehavioralInsights = async (payload) => {
+  return await deduplicatedPost("/api/behavioral-insights", payload);
+};
+
 // EXPOSE circuit state untuk monitoring/debugging
 const getCircuitState = () => ({
   state: circuitBreaker.state,
@@ -220,5 +237,6 @@ module.exports = {
   requestRecommendation,
   requestRecommendationWithExplanation,
   requestInsight,
+  requestBehavioralInsights,
   getCircuitState,
 };

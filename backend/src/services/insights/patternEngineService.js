@@ -1,13 +1,13 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../../config/prisma");
+const {
+  getJakartaRollingRange,
+  formatJakartaDate,
+  formatJakartaWeekday,
+} = require("../../utils/dateUtils");
 
 // GET PATTERN ENGINE
 const generateNutritionPatterns = async (userId) => {
-  // DATE RANGE
-  const today = new Date();
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(today.getDate() - 6);
-  sevenDaysAgo.setHours(0, 0, 0, 0);
+  const { startOfRange, endOfRange } = getJakartaRollingRange(7);
 
   // USER PROFILE
   const profile = await prisma.profile.findFirst({
@@ -20,9 +20,9 @@ const generateNutritionPatterns = async (userId) => {
   const logs = await prisma.dailyLog.findMany({
     where: {
       userId,
-      date: {
-        gte: sevenDaysAgo,
-        lte: today,
+        date: {
+        gte: startOfRange,
+        lte: endOfRange,
       },
     },
     orderBy: {
@@ -51,7 +51,7 @@ const generateNutritionPatterns = async (userId) => {
   const grouped = {};
 
   logs.forEach((log) => {
-    const key = new Date(log.date).toDateString();
+    const key = formatJakartaDate(log.date);
 
     if (!grouped[key]) {
       grouped[key] = {
@@ -92,9 +92,7 @@ const generateNutritionPatterns = async (userId) => {
   Object.entries(grouped).forEach(([date, data]) => {
     if (data.calories > highestCalories) {
       highestCalories = data.calories;
-      calorieSpikeDay = new Date(date).toLocaleDateString("en-US", {
-        weekday: "long",
-      });
+      calorieSpikeDay = formatJakartaWeekday(`${date}T00:00:00+07:00`);
     }
   });
 

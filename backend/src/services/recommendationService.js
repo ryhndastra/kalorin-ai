@@ -1,8 +1,7 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../config/prisma");
 const { calculateUserStatus } = require("../utils/bmiUtils");
 const { buildAIPayload } = require("../utils/payloadBuilder");
-const { normalizeScore } = require("../utils/scoreUtils");
+const { normalizeScore, getScoreLabel } = require("../utils/scoreUtils");
 const {
   requestRecommendation,
   requestRecommendationWithExplanation,
@@ -51,8 +50,8 @@ const heuristicScore = (food, userGoal, userStatus) => {
   if (isObesity) {
     if (food.fat <= 5) score += 15;
     else if (food.fat > 15) score -= 20;
-    if (food.carbs <= 30) score += 10;
-    else if (food.carbs > 60) score -= 10;
+    if (food.carbohydrate <= 30) score += 10;
+    else if (food.carbohydrate > 60) score -= 10;
   }
 
   return Math.max(0, Math.min(100, score));
@@ -156,9 +155,12 @@ const generateRecommendationList = async (userId) => {
 
         if (!aiData?.is_recommended) return null;
 
+        const matchScore = normalizeScore(aiData.match_score_percent);
+
         return {
           ...food,
-          matchScore: normalizeScore(aiData.match_score_percent),
+          matchScore,
+          matchLabel: getScoreLabel(matchScore),
           explanation:
             aiData.explanation || "Good nutritional match for your profile.",
         };
@@ -195,7 +197,13 @@ const generateFoodDetail = async (userId, foodId) => {
   if (!user || !food) throw new Error("Data not found");
 
   const payload = buildAIPayload(user, food);
-  return await requestRecommendationWithExplanation(payload);
+  const recommendation = await requestRecommendationWithExplanation(payload);
+  const matchScore = normalizeScore(recommendation?.match_score_percent);
+
+  return {
+    ...recommendation,
+    matchLabel: getScoreLabel(matchScore),
+  };
 };
 
 module.exports = {
