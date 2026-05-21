@@ -8,3 +8,5 @@ scikit-learn
 joblib
 python-multipart
 pydantic
+python-dotenv
+redis

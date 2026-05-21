@@ -3,7 +3,7 @@ const express = require("express");
 const cors = require("cors");
 
 // import Controllers
-const { getAllFoods, getFoodById } = require("./controllers/foodController");
+const { getAllFoods, getFoodById, searchFood } = require("./controllers/foodController");
 const {
   createOrUpdateProfile,
   getProfile,
@@ -33,6 +33,7 @@ app.get("/", (req, res) => res.send("API KalorinAI Running! 🚀"));
 
 // Endpoint Master Food (Database)
 app.get("/api/foods", getAllFoods);
+app.get("/api/foods/search", searchFood);
 app.get("/api/foods/:id", getFoodById);
 
 // Endpoint User Profile (Database)
