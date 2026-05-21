@@ -18,6 +18,7 @@ const {
 const user_routes = require("./routes/userRoutes");
 const track_routes = require("./routes/trackRoutes");
 const insightRoutes = require("./routes/insightRoutes");
+const scannerRoutes = require("./routes/scannerRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -29,7 +30,7 @@ app.use(express.json());
 //  ENDPOINTS
 
 // Endpoint Tes & Health Check
-app.get("/", (req, res) => res.send("API KalorinAI Running! 🚀"));
+app.get("/", (req, res) => res.send("API KalorinAI Running! "));
 
 // Endpoint Master Food (Database)
 app.get("/api/foods", getAllFoods);
@@ -41,6 +42,7 @@ app.get("/api/profile/:userId", getProfile);
 app.use("/api/user", user_routes);
 app.use("/api/track", track_routes);
 app.use("/api/insights", insightRoutes);
+app.use("/api/scanner", scannerRoutes);
 
 // ENDPOINTS AI
 
@@ -65,6 +67,6 @@ app.post("/api/ai/food-detail", getFoodRecommendation);
 // Start Server
 app.listen(PORT, () => {
   console.log(`
-  ✅ Server Node.js jalan di port ${PORT}
+  Server Node.js jalan di port ${PORT}
   `);
 });
