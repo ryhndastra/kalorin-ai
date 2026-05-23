@@ -1,3 +1,6 @@
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
+const { searchExternalFood } = require("../services/externalApiService");
 const prisma = require("../config/prisma");
 
 const getAllFoods = async (req, res) => {
@@ -33,4 +36,43 @@ const getFoodById = async (req, res) => {
   }
 };
 
-module.exports = { getAllFoods, getFoodById };
+const searchFood = async (req, res) => {
+  try {
+    const { keyword } = req.query;
+
+    if (!keyword) {
+      return res.status(400).json({ success: false, message: "Keyword dibutuhkan" });
+    }
+
+    // Cari di Database Lokal (Supabase) dulu
+    const localFoods = await prisma.food.findMany({
+      where: {
+        name: {
+          contains: keyword,
+          mode: "insensitive", // Biar huruf besar/kecil gak ngaruh
+        },
+      },
+      take: 5,
+    });
+
+    // Kalau di lokal datanya kosong atau kurang dari 3, panggil API Luar
+    let externalFoods = [];
+    if (localFoods.length < 3) {
+      console.log(`Pencarian lokal untuk "${keyword}" sedikit, memanggil API eksternal...`);
+      externalFoods = await searchExternalFood(keyword);
+    }
+
+    // Gabungkan hasil lokal dan eksternal
+    const finalResults = [...localFoods, ...externalFoods];
+
+    return res.status(200).json({
+      success: true,
+      data: finalResults,
+    });
+  } catch (error) {
+    console.error("❌ Search Food Error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+module.exports = { getAllFoods, getFoodById, searchFood };

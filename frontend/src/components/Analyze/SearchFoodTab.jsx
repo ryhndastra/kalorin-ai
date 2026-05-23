@@ -5,9 +5,11 @@ import SearchFoodCard from "./SearchFoodCard";
 import SearchCategoryChips from "./SearchCategoryChips";
 import { categories, categoryFilters } from "./searchConfig";
 import shuffleArray from "../../utils/shuffleArray";
+import axios from "axios"; //
 
 const SearchFoodTab = () => {
   const [foods, setFoods] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -34,29 +36,51 @@ const SearchFoodTab = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
-    }, 300);
+    }, 1500);
     return () => clearTimeout(timer);
   }, [search]);
 
+  // FETCH KE BACKEND PAS NGETIK
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      if (!debouncedSearch.trim()) {
+        setSearchResults([]);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        // NEMBAK KE API HYBRID 
+        const response = await axios.get(
+          `http://127.0.0.1:5000/api/foods/search?keyword=${debouncedSearch}`
+        );
+        setSearchResults(response.data.data || []);
+      } catch (error) {
+        console.error("❌ Search API failed:", error);
+        setSearchResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSearchResults();
+  }, [debouncedSearch]);
+
   // FILTERED FOODS
   const filteredFoods = useMemo(() => {
-    let filtered = foods;
-
-    // SEARCH FILTER
+    // Kalau lagi ngetik pencarian, pakai data dari backend
     if (debouncedSearch.trim()) {
-      filtered = filtered.filter((food) =>
-        food.name.toLowerCase().includes(debouncedSearch.toLowerCase()),
-      );
+      return searchResults; 
     }
 
-    // CATEGORY FILTER
+    // Kalau kolom search kosong, pakai data awal + filter kategori
+    let filtered = foods;
     if (selectedCategory && categoryFilters[selectedCategory]) {
       filtered = filtered.filter(categoryFilters[selectedCategory]);
     }
 
-    // RANDOMIZE RESULTS
     return shuffleArray(filtered).slice(0, 8);
-  }, [foods, debouncedSearch, selectedCategory]);
+  }, [foods, searchResults, debouncedSearch, selectedCategory]);
 
   return (
     <div className="bg-[#eefaf1] w-full flex-grow mt-4 pt-10 pb-20">
@@ -73,7 +97,6 @@ const SearchFoodTab = () => {
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
-
               setSelectedCategory("");
             }}
             placeholder="Search food..."
