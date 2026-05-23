@@ -1,8 +1,8 @@
-import axios from "axios";
+import apiClient from "../api/apiClient";
 
 export const syncUserToDb = async (user, fullName = null) => {
   try {
-    await axios.post("http://localhost:5000/api/profile", {
+    await apiClient.post("/profile", {
       userId: user.uid,
       name: fullName || user.displayName || "User",
       email: user.email,

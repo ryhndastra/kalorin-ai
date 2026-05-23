@@ -1,5 +1,10 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../../config/prisma");
+const { formatJakartaDate } = require("../../utils/dateUtils");
+
+const toUtcDate = (dateKey) => {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  return Date.UTC(year, month - 1, day);
+};
 
 // GET STREAK DATA
 const getStreakService = async (userId) => {
@@ -37,7 +42,7 @@ const getStreakService = async (userId) => {
   const groupedDays = {};
 
   logs.forEach((log) => {
-    const dateKey = new Date(log.date).toISOString().split("T")[0];
+    const dateKey = formatJakartaDate(log.date);
 
     if (!groupedDays[dateKey]) {
       groupedDays[dateKey] = {
@@ -58,7 +63,10 @@ const getStreakService = async (userId) => {
   for (let i = 1; i < uniqueDays.length; i++) {
     const prev = new Date(uniqueDays[i - 1]);
     const curr = new Date(uniqueDays[i]);
-    const diff = (curr - prev) / (1000 * 60 * 60 * 24);
+    const diff =
+      (toUtcDate(formatJakartaDate(curr)) -
+        toUtcDate(formatJakartaDate(prev))) /
+      (1000 * 60 * 60 * 24);
 
     if (diff === 1) {
       currentStreak++;
@@ -69,11 +77,11 @@ const getStreakService = async (userId) => {
   }
 
   // ACTIVE TRACKING STREAK
-  const lastTrackedDate = new Date(uniqueDays[uniqueDays.length - 1]);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const lastTrackedDate = uniqueDays[uniqueDays.length - 1];
+  const today = formatJakartaDate(new Date());
 
-  const diffFromToday = (today - lastTrackedDate) / (1000 * 60 * 60 * 24);
+  const diffFromToday =
+    (toUtcDate(today) - toUtcDate(lastTrackedDate)) / (1000 * 60 * 60 * 24);
 
   if (diffFromToday <= 1) {
     trackingStreak = currentStreak;

@@ -3,11 +3,23 @@ const {
   generateRecommendationList,
   generateFoodDetail,
 } = require("../services/recommendationService");
+const {
+  isBlank,
+  isPositiveNumber,
+} = require("../utils/requestValidation");
 
 // QUICK INSIGHT
 const getQuickInsight = async (req, res) => {
   try {
     const { userId, macroContext } = req.body;
+
+    if (isBlank(userId)) {
+      return res.status(400).json({
+        success: false,
+        error: "User ID is required",
+      });
+    }
+
     const recommendation = await generateInsight(userId, macroContext);
 
     return res.status(200).json({
@@ -29,6 +41,13 @@ const getRecommendedFoodList = async (req, res) => {
   try {
     const { userId } = req.body;
 
+    if (isBlank(userId)) {
+      return res.status(400).json({
+        success: false,
+        error: "User ID is required",
+      });
+    }
+
     const data = await generateRecommendationList(userId);
 
     return res.status(200).json({
@@ -49,6 +68,13 @@ const getRecommendedFoodList = async (req, res) => {
 const getFoodRecommendation = async (req, res) => {
   try {
     const { userId, foodId } = req.body;
+
+    if (isBlank(userId) || !isPositiveNumber(foodId)) {
+      return res.status(400).json({
+        success: false,
+        error: "Valid userId and foodId are required",
+      });
+    }
 
     const recommendation = await generateFoodDetail(userId, foodId);
 

@@ -65,6 +65,7 @@ model DailyLog {
   date           DateTime   @default(now())
   day            String
   @@index([userId, day])
+  @@index([userId, date])
   @@index([foodId])
 }
 

@@ -1,5 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../config/prisma");
 const { calculateUserStatus } = require("../utils/bmiUtils");
 const { requestInsight } = require("./aiApiService");
 const { INSIGHT_TTL } = require("../config/aiConfig");

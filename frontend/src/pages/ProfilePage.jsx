@@ -4,12 +4,12 @@ import { useUser } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../config/firebase";
 import { signOut } from "firebase/auth";
-import axios from "axios";
 import Navbar from "../components/Navbar/Navbar";
 import ProfileHero from "../components/Profile/ProfileHero";
 import StatsCard from "../components/Profile/StatsCard";
 import GoalsCard from "../components/Profile/GoalsCard";
 import EditModal from "../components/Profile/EditModal";
+import { updateUserProfile } from "../api/userService";
 
 const ProfilePage = () => {
   const { user } = useAuth();
@@ -61,13 +61,10 @@ const ProfilePage = () => {
 
       console.log("🚀 Mengirim data (Triggering Auto-Calculate):", payload);
 
-      const response = await axios.post(
-        "http://localhost:5000/api/profile",
-        payload,
-      );
+      const response = await updateUserProfile(payload);
 
-      if (response.data.success) {
-        console.log("✅ Berhasil! Data baru dari backend:", response.data.data);
+      if (response.success) {
+        console.log("✅ Berhasil! Data baru dari backend:", response.data);
 
         // ambil data terbaru hasil hitungan backend ke dalam Context
         await fetchProfile(currentUserId, true);

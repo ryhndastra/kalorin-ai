@@ -1,7 +1,11 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../config/prisma");
 const { calculateUserStatus } = require("../utils/bmiUtils");
 const { calculateDailyNeeds } = require("../utils/calculatorUtils");
+const { getJakartaDayRange } = require("../utils/dateUtils");
+const {
+  isBlank,
+  hasInvalidNumber,
+} = require("../utils/requestValidation");
 
 const createOrUpdateProfile = async (req, res) => {
   try {
@@ -16,6 +20,34 @@ const createOrUpdateProfile = async (req, res) => {
       dailyCalories,
       proteinTarget,
     } = req.body;
+
+    if (isBlank(userId) || isBlank(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID and email are required",
+      });
+    }
+
+    if (
+      hasInvalidNumber(req.body, [
+        "weight",
+        "height",
+        "dailyCalories",
+        "proteinTarget",
+      ])
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid numeric profile fields",
+      });
+    }
+
+    if (birthdate && Number.isNaN(new Date(birthdate).getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid birthdate",
+      });
+    }
 
     // ambil data lama dari db untuk dibandingin (jika ada)
     const existingProfile = await prisma.profile.findUnique({
@@ -104,6 +136,13 @@ const getProfile = async (req, res) => {
   try {
     const { userId } = req.params;
 
+    if (isBlank(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
+    }
+
     const profile = await prisma.profile.findUnique({
       where: { userId: userId },
     });
@@ -114,11 +153,7 @@ const getProfile = async (req, res) => {
         .json({ success: false, message: "Profil tidak ditemukan" });
     }
 
-    // range waktu hari ini (00:00 - 23:59)
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
+    const { startOfDay, endOfDay } = getJakartaDayRange();
 
     // hitung statistik makan hari ini
     const mealsToday = await prisma.dailyLog.count({

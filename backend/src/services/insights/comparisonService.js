@@ -1,22 +1,13 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../../config/prisma");
+const { getJakartaRollingRange } = require("../../utils/dateUtils");
 
 const getWeeklyComparisonService = async (userId) => {
-  // DATE RANGES
-  const today = new Date();
-
-  // CURRENT WEEK
-  const currentWeekStart = new Date();
-  currentWeekStart.setDate(today.getDate() - 6);
-  currentWeekStart.setHours(0, 0, 0, 0);
-
-  // PREVIOUS WEEK
-  const previousWeekStart = new Date();
-  previousWeekStart.setDate(today.getDate() - 13);
-  previousWeekStart.setHours(0, 0, 0, 0);
-  const previousWeekEnd = new Date();
-  previousWeekEnd.setDate(today.getDate() - 7);
-  previousWeekEnd.setHours(23, 59, 59, 999);
+  const { startOfRange: currentWeekStart, endOfRange: currentWeekEnd } =
+    getJakartaRollingRange(7);
+  const previousWeekEnd = new Date(currentWeekStart.getTime() - 1);
+  const previousWeekStart = new Date(
+    previousWeekEnd.getTime() - 7 * 24 * 60 * 60 * 1000 + 1,
+  );
 
   // FETCH LOGS
   const [currentLogs, previousLogs] = await Promise.all([
@@ -25,7 +16,7 @@ const getWeeklyComparisonService = async (userId) => {
         userId,
         date: {
           gte: currentWeekStart,
-          lte: today,
+          lte: currentWeekEnd,
         },
       },
     }),
@@ -49,7 +40,13 @@ const getWeeklyComparisonService = async (userId) => {
     logs.reduce((acc, log) => acc + (log.proteins || 0), 0);
 
   const uniqueTrackingDays = (logs) =>
-    new Set(logs.map((log) => new Date(log.date).toDateString())).size;
+    new Set(
+      logs.map((log) =>
+        new Date(log.date).toLocaleDateString("en-CA", {
+          timeZone: "Asia/Jakarta",
+        }),
+      ),
+    ).size;
 
   // TOTALS
   const currentCalories = sumCalories(currentLogs);

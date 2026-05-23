@@ -1,12 +1,4 @@
-import axios from "axios";
-
-// AXIOS INSTANCE
-const API_BASE_URL = "http://localhost:5000/api";
-
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-});
+import apiClient from "./apiClient";
 
 // FOOD DETAIL AI
 export const getFoodRecommendation = async (userId, foodId) => {

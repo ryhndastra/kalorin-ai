@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Target, Brain, ChevronRight, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../../context/UserContext";
-import axios from "axios";
+import { getDailyInsight } from "../../api/aiService";
 
 const InsightBanners = () => {
   const navigate = useNavigate();
@@ -21,20 +21,21 @@ const InsightBanners = () => {
 
   // fungsi ambil advice dari AI
   const getAiInsight = async () => {
-    if (proteinLeft <= 0) return; // kalo udah terpenuhi, ga usah ambil insight
+    if (proteinLeft <= 0 || !userData?.userId) return; // kalo udah terpenuhi, ga usah ambil insight
 
     setIsAiLoading(true);
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/ai/recommend",
-        {
-          userId: userData.userId,
-          remainingProtein: proteinLeft,
-          currentGoal: userData.goal,
-        },
+      const response = await getDailyInsight(
+        userData.userId,
+        `User needs ${proteinLeft}g more protein today. Current goal is ${
+          userData.goal || "Stay Healthy"
+        }. Give one short practical suggestion.`,
       );
 
-      setAiAdvice(response.data.recommendation);
+      setAiAdvice(
+        response?.recommendation ||
+          "Try adding a chicken breast or Greek yogurt to your next meal!",
+      );
     } catch (error) {
       console.error("AI Error:", error);
       setAiAdvice(

@@ -1,42 +1,20 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
-
-// GET JAKARTA DATE
-const getJakartaDate = () => {
-  return new Date(
-    new Date().toLocaleString("en-US", {
-      timeZone: "Asia/Jakarta",
-    }),
-  );
-};
-
-// FORMAT LOCAL DATE
-const formatLocalDate = (date) => {
-  return new Date(date).toLocaleDateString("en-CA", {
-    timeZone: "Asia/Jakarta",
-  });
-};
+const prisma = require("../../config/prisma");
+const {
+  getJakartaRollingRange,
+  formatJakartaDate,
+} = require("../../utils/dateUtils");
 
 // GET WEEKLY TRENDS
 const getWeeklyTrendsService = async (userId) => {
-  // TODAY (JAKARTA)
-  const today = getJakartaDate();
-
-  // END OF TODAY
-  today.setHours(23, 59, 59, 999);
-
-  // START RANGE
-  const sevenDaysAgo = new Date(today);
-  sevenDaysAgo.setDate(today.getDate() - 6);
-  sevenDaysAgo.setHours(0, 0, 0, 0);
+  const { startOfRange, endOfRange } = getJakartaRollingRange(7);
 
   // FETCH LOGS
   const logs = await prisma.dailyLog.findMany({
     where: {
       userId,
-      date: {
-        gte: sevenDaysAgo,
-        lte: today,
+        date: {
+        gte: startOfRange,
+        lte: endOfRange,
       },
     },
 
@@ -45,25 +23,14 @@ const getWeeklyTrendsService = async (userId) => {
     },
   });
 
-  // DEBUG
-  console.log("TODAY:", today);
-  console.log("SEVEN DAYS AGO:", sevenDaysAgo);
-  console.log(
-    "LOG DATES:",
-    logs.map((log) => ({
-      raw: log.date,
-      formatted: formatLocalDate(log.date),
-    })),
-  );
-
   // EMPTY 7 DAYS
   const grouped = {};
 
-  for (let i = 6; i >= 0; i--) {
-    const current = new Date(today);
-    current.setDate(today.getDate() - i);
-    const key = formatLocalDate(current);
-    
+  for (let i = 0; i < 7; i++) {
+    const current = new Date(startOfRange);
+    current.setUTCDate(startOfRange.getUTCDate() + i);
+    const key = formatJakartaDate(current);
+
     grouped[key] = {
       calories: 0,
       proteins: 0,
@@ -74,7 +41,7 @@ const getWeeklyTrendsService = async (userId) => {
 
   // GROUP LOGS
   logs.forEach((log) => {
-    const dayKey = formatLocalDate(log.date);
+    const dayKey = formatJakartaDate(log.date);
 
     if (!grouped[dayKey]) {
       grouped[dayKey] = {
@@ -100,7 +67,6 @@ const getWeeklyTrendsService = async (userId) => {
     fat: Number(values.fat.toFixed(1)),
   }));
 
-  console.log("FINAL TRENDS:", trends);
   return trends;
 };
 

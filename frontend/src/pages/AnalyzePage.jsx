@@ -31,6 +31,7 @@ const AnalyzePage = () => {
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
   const [isSwitching, setIsSwitching] = useState(true);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   // PAGE LOADING
   useEffect(() => {
@@ -47,41 +48,81 @@ const AnalyzePage = () => {
   // ANALYZE HANDLER
   const handleAnalyze = async (e) => {
     e.preventDefault();
-    setIsAnalyzing(true);
 
-    setTimeout(() => {
-      const dummyData = {
-        foodName: "Avocado Toast with Egg",
-        calories: 350,
-        macros: {
-          protein: "12g",
-          carbs: "25g",
-          fat: "22g",
+    // NO FILE
+    if (!selectedFile) {
+      toast.error("Please upload an image first.");
+      return;
+    }
+
+    try {
+      setIsAnalyzing(true);
+
+      setAnalysisResult(null);
+
+      // =========================
+      // FORM DATA
+      // =========================
+      const formData = new FormData();
+
+      formData.append("file", selectedFile);
+
+      // =========================
+      // API CALL
+      // =========================
+      const response = await fetch(
+        "http://localhost:5000/api/scanner/scan-food",
+        {
+          method: "POST",
+          body: formData,
         },
-        confidence: "95%",
-      };
+      );
 
-      setAnalysisResult(dummyData);
-      setIsAnalyzing(false);
+      const data = await response.json();
+
+      // FAILED
+      if (!data.success) {
+        toast.error(data.message || "Failed to analyze food.");
+        return;
+      }
+
+      // SUCCESS
+      setAnalysisResult({
+        foodName: data.food,
+        calories: data.calories,
+        macros: {
+          protein: `${data.proteins}g`,
+          carbs: `${data.carbohydrate}g`,
+          fat: `${data.fat}g`,
+        },
+        confidence: `${Math.round(data.confidence)}%`,
+        image: data.image,
+      });
+
+      // SCROLL
       window.scrollTo({
         top: document.body.scrollHeight,
-
         behavior: "smooth",
       });
-    }, 2000);
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong.");
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   // FILE UPLOAD
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
-
     if (file) {
+      setSelectedFile(file);
       const reader = new FileReader();
-
       reader.onloadend = () => {
         setCapturedImage(reader.result);
         setIsCameraActive(false);
       };
+
       reader.readAsDataURL(file);
     }
   };
@@ -91,10 +132,32 @@ const AnalyzePage = () => {
     setFacingMode((prev) => (prev === "user" ? "environment" : "user"));
   };
 
+  const dataURLtoFile = (dataurl, filename) => {
+    const arr = dataurl.split(",");
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+
+    return new File([u8arr], filename, { type: mime });
+  };
+
   // CAMERA CAPTURE
   const capture = useCallback((webcamRef) => {
     const imageSrc = webcamRef.current.getScreenshot();
+
+    if (!imageSrc) return;
+    // PREVIEW
     setCapturedImage(imageSrc);
+    // BASE64 → FILE
+    const imageFile = dataURLtoFile(imageSrc, "camera-capture.jpg");
+    // SAVE FILE
+    setSelectedFile(imageFile);
+    // CLOSE CAMERA
     setIsCameraActive(false);
   }, []);
 

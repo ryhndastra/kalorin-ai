@@ -1,6 +1,7 @@
 import os
 import traceback
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException,UploadFile, File
+from classifier import predict_food
 from pydantic import BaseModel
 import tensorflow as tf
 from tensorflow.keras import layers
@@ -382,5 +383,25 @@ def cache_stats():
         # "insight_cache_size": len(insight_cache),
         # "behavioral_cache_size": len(behavioral_cache),
     }
+
+# FOOD CLASSIFIER
+@app.post("/predict-food")
+async def predict_food_api(
+    file: UploadFile = File(...)
+):
+    try:
+        result = predict_food(
+            file.file
+        )
+
+        return result
+
+    except Exception as e:
+        traceback.print_exc()
+
+        return {
+            "success": False,
+            "message": str(e),
+        }
 
 # Cara run: uvicorn main:app --reload

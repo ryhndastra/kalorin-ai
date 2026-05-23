@@ -1,6 +1,6 @@
-const axios = require("axios");
 const { generateNutritionPatterns } = require("./patternEngineService");
 const { getFoodPatternService } = require("./foodPatternService");
+const { requestBehavioralInsights } = require("../aiApiService");
 
 // GET AI BEHAVIORAL INSIGHTS
 const getBehavioralInsightsService = async (userId) => {
@@ -18,13 +18,10 @@ const getBehavioralInsightsService = async (userId) => {
     };
 
     // AI MICROSERVICE
-    const response = await axios.post(
-      "http://127.0.0.1:8000/api/behavioral-insights",
-      payload,
-    );
+    const response = await requestBehavioralInsights(payload);
 
     // RETURN DATA
-    return response.data.insights || [];
+    return response.insights || [];
   } catch (error) {
     console.error("❌ AI Behavioral Insight Error:", error.message);
     return [

@@ -10,7 +10,7 @@ const ImagePreview = ({ image, onAnalyze, onRetake }) => (
         onClick={onAnalyze}
         className="bg-green-500 text-white px-6 py-2 rounded-xl font-bold"
       >
-        Analyze ✨
+        Analyze
       </button>
       <button
         onClick={onRetake}

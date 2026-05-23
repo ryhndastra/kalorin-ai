@@ -1,20 +1,19 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../../config/prisma");
+const {
+  getJakartaRollingRange,
+  formatJakartaDate,
+} = require("../../utils/dateUtils");
 
 const getWeeklySummaryService = async (userId) => {
-  // DATE RANGE
-  const today = new Date();
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(today.getDate() - 6);
-  sevenDaysAgo.setHours(0, 0, 0, 0);
+  const { startOfRange, endOfRange } = getJakartaRollingRange(7);
 
   // FETCH LOGS
   const logs = await prisma.dailyLog.findMany({
     where: {
       userId,
-      date: {
-        gte: sevenDaysAgo,
-        lte: today,
+        date: {
+        gte: startOfRange,
+        lte: endOfRange,
       },
     },
 
@@ -46,7 +45,7 @@ const getWeeklySummaryService = async (userId) => {
 
   // UNIQUE DAYS
   const uniqueDays = new Set(
-    logs.map((log) => new Date(log.date).toDateString()),
+    logs.map((log) => formatJakartaDate(log.date)),
   );
 
   const totalDays = uniqueDays.size || 1;
