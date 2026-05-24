@@ -11,6 +11,11 @@ import GoalsCard from "../components/Profile/GoalsCard";
 import EditModal from "../components/Profile/EditModal";
 import { updateUserProfile } from "../api/userService";
 import { PencilLine, UserRound } from "lucide-react";
+import {
+  ACTIVITY_LEVEL_OPTIONS,
+  GENDER_OPTIONS,
+  getActivityLevelDescription,
+} from "../utils/profileOptions";
 
 const ProfilePage = () => {
   const { user } = useAuth();
@@ -31,6 +36,8 @@ const ProfilePage = () => {
         : "",
       weight: userData?.weight || 0,
       height: userData?.height || 0,
+      gender: userData?.gender || "",
+      activityLevel: userData?.activityLevel || "sedentary",
       goal: userData?.goal || "Stay Healthy",
       dailyCalories: userData?.dailyCalories || 2000,
       proteinTarget: userData?.proteinTarget || 100,
@@ -74,6 +81,8 @@ const ProfilePage = () => {
               name: userData?.fullName || user.displayName,
               email: user.email,
               birthdate: tempData.birthdate,
+              gender: tempData.gender,
+              activityLevel: tempData.activityLevel,
               goal: tempData.goal,
               weight: parseFloat(tempData.weight) || 0,
               height: parseFloat(tempData.height) || 0,
@@ -206,6 +215,51 @@ const ProfilePage = () => {
             <div className="flex gap-4">
               <div className="flex-1">
                 <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-wider">
+                  Gender
+                </label>
+                <select
+                  className="w-full mt-1 p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-green-500 outline-none font-bold text-gray-700"
+                  value={tempData.gender || ""}
+                  onChange={(e) =>
+                    setTempData({ ...tempData, gender: e.target.value })
+                  }
+                >
+                  <option value="">Select</option>
+                  {GENDER_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-wider">
+                  Activity
+                </label>
+                <select
+                  className="w-full mt-1 p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-green-500 outline-none font-bold text-gray-700"
+                  value={tempData.activityLevel || "sedentary"}
+                  onChange={(e) =>
+                    setTempData({
+                      ...tempData,
+                      activityLevel: e.target.value,
+                    })
+                  }
+                >
+                  {ACTIVITY_LEVEL_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-2 min-h-5 text-xs font-medium leading-5 text-gray-500">
+                  {getActivityLevelDescription(tempData.activityLevel)}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-wider">
                   Weight (kg)
                 </label>
                 <input
@@ -249,6 +303,30 @@ const ProfilePage = () => {
                 <option value="Weight Loss">Weight Loss</option>
                 <option value="Bulking">Bulking</option>
               </select>
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-wider">
+                Activity Level
+              </label>
+              <select
+                className="w-full mt-1 p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-green-500 outline-none font-bold text-gray-700 appearance-none"
+                value={tempData.activityLevel || "sedentary"}
+                onChange={(e) =>
+                  setTempData({
+                    ...tempData,
+                    activityLevel: e.target.value,
+                  })
+                }
+              >
+                {ACTIVITY_LEVEL_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-2 text-xs font-medium leading-5 text-gray-500">
+                {getActivityLevelDescription(tempData.activityLevel)}
+              </p>
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-wider">

@@ -1,14 +1,38 @@
-const calculateDailyNeeds = (weight, height, birthdate, goal) => {
-  // guard clause, kalau data ga lengkap kasih default standar minimal
-  if (!weight || !height || !birthdate) {
-    return { calories: 2000, protein: 100 };
-  }
+const ACTIVITY_FACTORS = {
+  sedentary: 1.2,
+  light: 1.375,
+  moderate: 1.55,
+  active: 1.725,
+  very_active: 1.9,
+};
 
-  // hitung umur
+const VALID_GENDERS = new Set(["male", "female"]);
+
+const MIN_TARGET_CALORIES = {
+  male: 1500,
+  female: 1200,
+};
+
+const normalizeGender = (gender) => {
+  if (typeof gender !== "string") return null;
+
+  const normalized = gender.trim().toLowerCase();
+  return VALID_GENDERS.has(normalized) ? normalized : null;
+};
+
+const normalizeActivityLevel = (activityLevel) => {
+  if (typeof activityLevel !== "string") return "sedentary";
+
+  const normalized = activityLevel.trim().toLowerCase();
+  return ACTIVITY_FACTORS[normalized] ? normalized : "sedentary";
+};
+
+const calculateAge = (birthdate) => {
   const today = new Date();
   const birthDate = new Date(birthdate);
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
+
   if (
     monthDiff < 0 ||
     (monthDiff === 0 && today.getDate() < birthDate.getDate())
@@ -16,17 +40,49 @@ const calculateDailyNeeds = (weight, height, birthdate, goal) => {
     age--;
   }
 
-  // rumus basal metabolic rate
-  // BMR = (10 × weight) + (6.25 × height) - (5 × age) + 5
-  const bmr = 10 * parseFloat(weight) + 6.25 * parseFloat(height) - 5 * age + 5;
+  return age;
+};
 
-  // TDEE = BMR x Activity Multiplier
-  // pake multiplier 1.375 (Lightly Active) sebagai standar aplikasi fitness
-  let tdee = bmr * 1.375;
+const calculateDailyNeeds = (
+  weight,
+  height,
+  birthdate,
+  goal,
+  gender,
+  activityLevel,
+) => {
+  // guard clause, kalau data ga lengkap kasih default standar minimal
+  if (!weight || !height || !birthdate) {
+    return { calories: 2000, protein: 100 };
+  }
+
+  const age = calculateAge(birthdate);
+  const normalizedGender = normalizeGender(gender);
+  const normalizedActivityLevel = normalizeActivityLevel(activityLevel);
+
+  if (!normalizedGender || age <= 0) {
+    return { calories: 2000, protein: 100 };
+  }
+
+  const numericWeight = parseFloat(weight);
+  const numericHeight = parseFloat(height);
+
+  // Mifflin-St Jeor BMR equation for adults.
+  const bmr =
+    10 * numericWeight +
+    6.25 * numericHeight -
+    5 * age +
+    (normalizedGender === "male" ? 5 : -161);
+
+  // TDEE = BMR x activity factor.
+  const tdee = bmr * ACTIVITY_FACTORS[normalizedActivityLevel];
 
   let targetCalories = tdee;
   if (goal === "Weight Loss") {
-    targetCalories = tdee - 500;
+    targetCalories = Math.max(
+      tdee - 500,
+      MIN_TARGET_CALORIES[normalizedGender],
+    );
   } else if (goal === "Bulking") {
     targetCalories = tdee + 500;
   }
@@ -39,7 +95,7 @@ const calculateDailyNeeds = (weight, height, birthdate, goal) => {
     proteinMultiplier = 1.9;
   }
 
-  let targetProtein = parseFloat(weight) * proteinMultiplier;
+  const targetProtein = numericWeight * proteinMultiplier;
 
   return {
     calories: Math.round(targetCalories),
@@ -47,4 +103,9 @@ const calculateDailyNeeds = (weight, height, birthdate, goal) => {
   };
 };
 
-module.exports = { calculateDailyNeeds };
+module.exports = {
+  ACTIVITY_FACTORS,
+  calculateDailyNeeds,
+  normalizeActivityLevel,
+  normalizeGender,
+};

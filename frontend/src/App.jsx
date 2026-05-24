@@ -18,7 +18,13 @@ import RequiredProfileModal from "./components/Profile/RequiredProfileModal";
 
 const hasCompleteBodyStats = (profile) => {
   if (!profile) return false;
-  return Boolean(profile.birthdate && profile.weight > 0 && profile.height > 0);
+  return Boolean(
+    profile.birthdate &&
+      profile.weight > 0 &&
+      profile.height > 0 &&
+      profile.gender &&
+      profile.activityLevel,
+  );
 };
 
 export default function App() {

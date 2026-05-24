@@ -1,7 +1,8 @@
 import React from "react";
-import { Target, Flame, Zap, PencilLine } from "lucide-react";
+import { Target, Flame, Zap, PencilLine, Activity } from "lucide-react";
 import ProfileItem from "./ProfileItem";
 import { useUser } from "../../context/UserContext";
+import { getActivityLevelLabel } from "../../utils/profileOptions";
 
 const GoalsCard = ({ onEdit }) => {
   const { userData } = useUser(); // ambil userData dari UserContext untuk akses goal, dailyCalories, proteinTarget
@@ -24,6 +25,11 @@ const GoalsCard = ({ onEdit }) => {
           icon={Target}
           label="Current Goal"
           value={userData?.goal || "Not Set"}
+        />
+        <ProfileItem
+          icon={Activity}
+          label="Activity Level"
+          value={getActivityLevelLabel(userData?.activityLevel)}
         />
         <ProfileItem
           icon={Flame}

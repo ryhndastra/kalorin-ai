@@ -1,6 +1,11 @@
 const prisma = require("../config/prisma");
 const { calculateUserStatus } = require("../utils/bmiUtils");
-const { calculateDailyNeeds } = require("../utils/calculatorUtils");
+const {
+  ACTIVITY_FACTORS,
+  calculateDailyNeeds,
+  normalizeActivityLevel,
+  normalizeGender,
+} = require("../utils/calculatorUtils");
 const { getJakartaDayRange } = require("../utils/dateUtils");
 const {
   isBlank,
@@ -13,6 +18,8 @@ const createOrUpdateProfile = async (req, res) => {
       name,
       weight,
       height,
+      gender,
+      activityLevel,
       goal,
       birthdate,
       dailyCalories,
@@ -54,6 +61,30 @@ const createOrUpdateProfile = async (req, res) => {
       where: { userId },
     });
 
+    const normalizedGender = gender
+      ? normalizeGender(gender)
+      : existingProfile?.gender || null;
+    const normalizedActivityLevel = activityLevel
+      ? normalizeActivityLevel(activityLevel)
+      : existingProfile?.activityLevel || "sedentary";
+
+    if (gender && !normalizedGender) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid gender",
+      });
+    }
+
+    if (
+      activityLevel &&
+      !ACTIVITY_FACTORS[String(activityLevel).trim().toLowerCase()]
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid activity level",
+      });
+    }
+
     // hitung status BMI
     const userStatus =
       weight && height
@@ -70,6 +101,9 @@ const createOrUpdateProfile = async (req, res) => {
     const isPhysicalDataChanged =
       (weight && weight !== existingProfile?.weight) ||
       (height && height !== existingProfile?.height) ||
+      (normalizedGender && normalizedGender !== existingProfile?.gender) ||
+      (normalizedActivityLevel &&
+        normalizedActivityLevel !== existingProfile?.activityLevel) ||
       (goal && goal !== existingProfile?.goal);
 
     const isManualInput =
@@ -82,6 +116,8 @@ const createOrUpdateProfile = async (req, res) => {
         height || existingProfile?.height || 0,
         birthdate || existingProfile?.birthdate,
         goal || existingProfile?.goal || "Stay Healthy",
+        normalizedGender || existingProfile?.gender,
+        normalizedActivityLevel || existingProfile?.activityLevel,
       );
       finalCalories = autoNeeds.calories;
       finalProtein = autoNeeds.protein;
@@ -93,6 +129,10 @@ const createOrUpdateProfile = async (req, res) => {
         fullName: name,
         ...(weight > 0 && { weight: parseFloat(weight) }),
         ...(height > 0 && { height: parseFloat(height) }),
+        ...(normalizedGender && { gender: normalizedGender }),
+        ...(normalizedActivityLevel && {
+          activityLevel: normalizedActivityLevel,
+        }),
         ...(goal && { goal: goal }),
         ...(userStatus && { userStatus: userStatus }),
         ...(birthdate && { birthdate: new Date(birthdate) }),
@@ -117,6 +157,8 @@ const createOrUpdateProfile = async (req, res) => {
         fullName: name || "User",
         weight: parseFloat(weight) || 0,
         height: parseFloat(height) || 0,
+        gender: normalizedGender,
+        activityLevel: normalizedActivityLevel,
         goal: goal || "Stay Healthy",
         userStatus: userStatus || "Normal",
         birthdate: birthdate ? new Date(birthdate) : null,

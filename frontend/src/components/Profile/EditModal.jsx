@@ -13,7 +13,7 @@ const EditModal = ({ isOpen, onClose, title, children, onSave, isLoading }) => {
       />
 
       {/* modal content */}
-      <div className="relative bg-white w-full max-w-md rounded-[32px] p-8 shadow-2xl transform transition-all animate-in fade-in zoom-in duration-300">
+      <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[32px] bg-white p-8 shadow-2xl transform transition-all animate-in fade-in zoom-in duration-300">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-bold text-gray-800">{title}</h3>
           <button

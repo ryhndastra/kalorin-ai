@@ -17,6 +17,8 @@ model Profile {
   email          String   @unique
   fullName       String?
   birthdate      DateTime?
+  gender         String?
+  activityLevel  String?  @default("sedentary")
   weight         Float?
   height         Float?
   goal           String?  @default("Stay Healthy")
