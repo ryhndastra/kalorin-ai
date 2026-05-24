@@ -34,8 +34,6 @@ const SearchFoodCard = ({ food }) => {
       await fetchProfile(user.id || user.uid, true);
 
       toast.success(`${food.name} added to meal log`);
-
-      console.log("✅ Meal added");
     } catch (error) {
       console.error("❌ Failed add meal:", error);
       toast.error("Failed to add meal log.");

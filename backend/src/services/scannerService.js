@@ -2,6 +2,10 @@ const axios = require("axios");
 const FormData = require("form-data");
 const prisma = require("../config/prisma");
 const foodAliasMap = require("../utils/foodAliasMap");
+const isDev = process.env.NODE_ENV !== "production";
+const debugLog = (...args) => {
+  if (isDev) console.debug(...args);
+};
 
 // SCAN FOOD IMAGE
 const scanFoodImage = async (fileBuffer, fileName) => {
@@ -20,7 +24,7 @@ const scanFoodImage = async (fileBuffer, fileName) => {
     );
 
     const aiData = aiResponse.data;
-    console.log("AI RESPONSE:", aiData);
+    debugLog("AI RESPONSE:", aiData);
 
     // AI FAILED
     if (!aiData.success) {
@@ -38,7 +42,7 @@ const scanFoodImage = async (fileBuffer, fileName) => {
     // ALIAS LOOKUP
     const searchFood = foodAliasMap[normalizedFood] || normalizedFood;
 
-    console.log("SEARCH FOOD:", searchFood);
+    debugLog("SEARCH FOOD:", searchFood);
 
     // FIND FOOD
     const food = await prisma.food.findFirst({
@@ -50,7 +54,7 @@ const scanFoodImage = async (fileBuffer, fileName) => {
       },
     });
 
-    console.log("FOUND FOOD:", food);
+    debugLog("FOUND FOOD:", food);
 
     // FOOD NOT FOUND
     if (!food) {

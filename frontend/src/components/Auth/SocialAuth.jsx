@@ -1,5 +1,6 @@
 import React from "react";
 import { Smartphone, Apple } from "lucide-react";
+import toast from "react-hot-toast";
 
 const SocialAuth = ({ onGoogleClick, isLoading }) => {
   return (
@@ -44,7 +45,7 @@ const SocialAuth = ({ onGoogleClick, isLoading }) => {
         {/* HP */}
         <button
           type="button"
-          onClick={() => alert("Fitur Login via No. HP segera hadir!")}
+          onClick={() => toast("Fitur Login via No. HP segera hadir.")}
           className="flex-1 flex items-center justify-center py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-gray-700"
         >
           <Smartphone size={20} />
@@ -53,7 +54,7 @@ const SocialAuth = ({ onGoogleClick, isLoading }) => {
         {/* Apple */}
         <button
           type="button"
-          onClick={() => alert("Fitur Login via Apple segera hadir!")}
+          onClick={() => toast("Fitur Login via Apple segera hadir.")}
           className="flex-1 flex items-center justify-center py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-gray-900"
         >
           <Apple size={20} fill="currentColor" />

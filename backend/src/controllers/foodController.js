@@ -1,5 +1,6 @@
 const { searchExternalFood } = require("../services/externalApiService");
 const prisma = require("../config/prisma");
+const isDev = process.env.NODE_ENV !== "production";
 
 const getAllFoods = async (req, res, next) => {
   try {
@@ -61,9 +62,11 @@ const searchFood = async (req, res, next) => {
     // Kalau di lokal datanya kosong atau kurang dari 3, panggil API Luar
     let externalFoods = [];
     if (localFoods.length < 3) {
-      console.log(
-        `Pencarian lokal untuk "${keyword}" sedikit, memanggil API eksternal...`,
-      );
+      if (isDev) {
+        console.info(
+          `Pencarian lokal untuk "${keyword}" sedikit, memanggil API eksternal...`,
+        );
+      }
       externalFoods = await searchExternalFood(keyword);
     }
 

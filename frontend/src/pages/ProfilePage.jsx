@@ -97,13 +97,9 @@ const ProfilePage = () => {
               proteinTarget: 0,
             };
 
-      console.log("🚀 Mengirim data (Triggering Auto-Calculate):", payload);
-
       const response = await updateUserProfile(payload);
 
       if (response.success) {
-        console.log("✅ Berhasil! Data baru dari backend:", response.data);
-
         // ambil data terbaru hasil hitungan backend ke dalam Context
         await fetchProfile(currentUserId, true);
 

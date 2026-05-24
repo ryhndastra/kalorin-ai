@@ -14,6 +14,10 @@ const {
 } = require("../config/aiConfig");
 
 const { getCache, setCache } = require("../utils/cacheUtils");
+const isDev = process.env.NODE_ENV !== "production";
+const debugLog = (...args) => {
+  if (isDev) console.debug(...args);
+};
 
 // CACHE — hanya untuk list final (bukan perfood, itu sudah di Redis)
 const recommendationListCache = new Map();
@@ -110,7 +114,7 @@ const generateRecommendationList = async (userId) => {
     recommendationCacheKey,
   );
   if (cachedRecommendations) {
-    console.log("⚡ Using cached recommendation list");
+    debugLog("⚡ Using cached recommendation list");
     return cachedRecommendations;
   }
 
@@ -138,7 +142,7 @@ const generateRecommendationList = async (userId) => {
     .slice(0, MAX_AI_CANDIDATES)
     .map(({ food }) => food);
 
-  console.log(
+  debugLog(
     `📊 ${rawFoods.length} raw → ${filteredFoods.length} filtered → ${topCandidates.length} to AI`,
   );
 

@@ -11,11 +11,6 @@ const ProfileHero = memo(({ user, userData }) => {
   const fileInputRef = useRef(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  console.log(
-    "DEBUG - Render ProfileHero:",
-    userData?.fullName || "Loading...",
-  );
-
   // ambil data fisik dengan proteksi default
   const weight = userData?.weight || "--";
   const height = userData?.height || "--";

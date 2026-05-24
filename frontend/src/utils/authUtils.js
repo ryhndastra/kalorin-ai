@@ -7,7 +7,6 @@ export const syncUserToDb = async (user, fullName = null) => {
       name: fullName || user.displayName || "User",
       email: user.email,
     });
-    console.log("Supabase Sync: Success (Identity only)");
   } catch (error) {
     console.error("Supabase Sync: Failed", error);
   }
