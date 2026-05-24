@@ -12,6 +12,8 @@ const Navbar = ({ user, loading }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const navigate = useNavigate();
+  const displayName =
+    auth.currentUser?.displayName || user?.displayName || "User";
 
   // HIDE ON SCROLL
   useEffect(() => {
@@ -70,7 +72,7 @@ const Navbar = ({ user, loading }) => {
         <div className="max-w-[1600px] mx-auto px-5 lg:px-8 py-4 flex items-center justify-between">
           {/* LEFT */}
           <Link
-            to="/analyze"
+            to={user ? "/analyze" : "/"}
             className="flex items-center gap-2 font-bold text-xl cursor-pointer shrink-0"
           >
             <img
@@ -81,9 +83,11 @@ const Navbar = ({ user, loading }) => {
           </Link>
 
           {/* DESKTOP LINKS */}
-          <div className="hidden lg:flex">
-            <NavLinks />
-          </div>
+          {user && (
+            <div className="hidden lg:flex">
+              <NavLinks />
+            </div>
+          )}
 
           {/* RIGHT */}
           <div className="hidden lg:flex items-center gap-4">
@@ -142,9 +146,11 @@ const Navbar = ({ user, loading }) => {
         >
           <div className="pt-28 px-6 pb-8 flex flex-col h-full">
             {/* NAV LINKS */}
-            <div className="flex flex-col gap-2">
-              <NavLinks mobile onNavigate={handleMobileNavigate} />
-            </div>
+            {user && (
+              <div className="flex flex-col gap-2">
+                <NavLinks mobile onNavigate={handleMobileNavigate} />
+              </div>
+            )}
 
             {/* USER SECTION */}
             <div className="mt-auto pt-8 border-t border-gray-100">
@@ -161,7 +167,7 @@ const Navbar = ({ user, loading }) => {
                     />
                     <div>
                       <p className="font-semibold text-gray-900 line-clamp-1">
-                        {user.displayName || "User"}
+                        {displayName}
                       </p>
                       <p className="text-sm text-gray-500 line-clamp-1">
                         {user.email}
@@ -191,12 +197,6 @@ const Navbar = ({ user, loading }) => {
                           className="rounded-2xl px-4 py-3 text-left font-medium text-gray-700 hover:bg-[#F8FAFC] transition"
                         >
                           Profile
-                        </button>
-                        <button
-                          onClick={() => handleMobileNavigate("/settings")}
-                          className="rounded-2xl px-4 py-3 text-left font-medium text-gray-700 hover:bg-[#F8FAFC] transition"
-                        >
-                          Settings
                         </button>
                         <button
                           onClick={handleLogout}

@@ -17,7 +17,8 @@ const MacroBar = ({ label, percentage, color, bgTrack }) => (
 
 const HeroDashboard = ({ user, userData }) => {
   // ambil nama depan
-  const firstName = user?.displayName ? user.displayName.split(" ")[0] : "User";
+  const displayName = userData?.fullName || user?.displayName || "User";
+  const firstName = displayName.split(" ")[0];
 
   // data & stats profile
   const stats = userData?.today_stats;

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Utensils, CircleX } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useAuth } from "../../context/AuthProvider";
 import { addMealLog } from "../../api/trackService";
 import toast from "react-hot-toast";
@@ -14,6 +14,7 @@ const SearchFoodCard = ({ food }) => {
   const handleAddMeal = async () => {
     try {
       if (!user) {
+        toast.error("Please sign in to add meals to your log.");
         return;
       }
       setIsAdding(true);
@@ -32,16 +33,12 @@ const SearchFoodCard = ({ food }) => {
       // REFRESH PROFILE
       await fetchProfile(user.id || user.uid, true);
 
-      toast.success(`${food.name} added to meal log`, {
-        icon: <Utensils size={18} />,
-      });
+      toast.success(`${food.name} added to meal log`);
 
       console.log("✅ Meal added");
     } catch (error) {
-      toast.error("Failed to add meal", {
-        icon: <CircleX size={18} />,
-      });
       console.error("❌ Failed add meal:", error);
+      toast.error("Failed to add meal log.");
     } finally {
       setIsAdding(false);
     }
