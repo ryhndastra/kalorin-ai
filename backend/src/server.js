@@ -20,7 +20,6 @@ const {
   getRecommendedFoodList, // fungsi buat list dashboard
 } = require("./controllers/aiController");
 
-const user_routes = require("./routes/userRoutes");
 const track_routes = require("./routes/trackRoutes");
 const insightRoutes = require("./routes/insightRoutes");
 const scannerRoutes = require("./routes/scannerRoutes");
@@ -60,7 +59,6 @@ app.get("/api/foods/:id", getFoodById);
 // Endpoint User Profile (Database)
 app.post("/api/profile", authenticateFirebaseToken, createOrUpdateProfile);
 app.get("/api/profile/:userId", authenticateFirebaseToken, getProfile);
-app.use("/api/user", user_routes);
 app.use("/api/track", track_routes);
 app.use("/api/insights", insightRoutes);
 app.use("/api/scanner", scannerRoutes);

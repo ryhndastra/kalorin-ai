@@ -208,18 +208,9 @@ Endpoint utama:
 - `POST /api/ai/recommend`
 - `POST /api/ai/food-list`
 - `POST /api/ai/food-detail`
-- Prefix route: `/api/user`, `/api/track`, `/api/insights`
+- Prefix route: `/api/track`, `/api/insights`
 
 ### Routes
-
-#### `backend/src/routes/userRoutes.js`
-
-Route alternatif untuk profile:
-
-- `POST /api/user/profile`
-- `GET /api/user/profile/:userId`
-
-Keduanya memanggil controller yang sama dengan endpoint `/api/profile`.
 
 #### `backend/src/routes/trackRoutes.js`
 
