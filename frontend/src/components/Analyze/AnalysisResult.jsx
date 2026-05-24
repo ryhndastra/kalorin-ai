@@ -1,6 +1,13 @@
 import React from "react";
+import { Plus, Loader2 } from "lucide-react";
 
-const AnalysisResult = ({ result, onClear }) => {
+const AnalysisResult = ({
+  result,
+  onClear,
+  onAddMeal,
+  isAddingMeal = false,
+  canAddMeal = true,
+}) => {
   return (
     <div className="bg-white rounded-3xl p-6 mb-8 shadow-md border border-green-50 animate-in fade-in zoom-in duration-300">
       <div className="flex justify-between items-center mb-6">
@@ -41,12 +48,31 @@ const AnalysisResult = ({ result, onClear }) => {
         ))}
       </div>
 
-      <button
-        onClick={onClear}
-        className="w-full mt-6 py-3 text-sm font-semibold text-gray-400 hover:text-gray-600 transition"
-      >
-        Clear Result
-      </button>
+      <div className="mt-6 flex flex-col sm:flex-row gap-3">
+        <button
+          onClick={onAddMeal}
+          disabled={isAddingMeal}
+          className="flex-1 py-3 rounded-2xl bg-[#22C55E] text-white text-sm font-bold flex items-center justify-center gap-2 hover:bg-[#16A34A] transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isAddingMeal ? (
+            <Loader2 size={16} className="animate-spin" />
+          ) : (
+            <Plus size={16} />
+          )}
+          {isAddingMeal
+            ? "Adding..."
+            : canAddMeal
+              ? "Add to Meal Log"
+              : "Sign in to Add"}
+        </button>
+
+        <button
+          onClick={onClear}
+          className="flex-1 py-3 rounded-2xl border border-gray-100 text-sm font-semibold text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition"
+        >
+          Clear Result
+        </button>
+      </div>
     </div>
   );
 };

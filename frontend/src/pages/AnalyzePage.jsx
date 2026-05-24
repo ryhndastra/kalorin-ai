@@ -13,11 +13,12 @@ import SearchFoodTab from "../components/Analyze/SearchFoodTab";
 import { useUser } from "../context/UserContext";
 import { useAuth } from "../context/AuthContext";
 import AnalyzeSkeleton from "../components/skeletons/AnalyzeSkeleton";
+import { addMealLog } from "../api/trackService";
 
 const AnalyzePage = () => {
   // CONTEXT
   const { user } = useAuth();
-  const { isInitialized, loading: profileLoading } = useUser();
+  const { isInitialized, loading: profileLoading, fetchProfile } = useUser();
   const isGuest = !user;
 
   // URL SEARCH PARAMS
@@ -32,6 +33,7 @@ const AnalyzePage = () => {
   const [capturedImage, setCapturedImage] = useState(null);
   const [isSwitching, setIsSwitching] = useState(true);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [isAddingMeal, setIsAddingMeal] = useState(false);
 
   // PAGE LOADING
   useEffect(() => {
@@ -160,6 +162,45 @@ const AnalyzePage = () => {
     // CLOSE CAMERA
     setIsCameraActive(false);
   }, []);
+
+  const parseMacroValue = (value) => {
+    const parsed = parseFloat(String(value || "0").replace(/[^\d.]/g, ""));
+    return Number.isNaN(parsed) ? 0 : parsed;
+  };
+
+  const handleAddScanResultToMeal = async () => {
+    if (!user) {
+      toast.error("Please sign in to add meals to your log.");
+      return;
+    }
+
+    if (!analysisResult) {
+      return;
+    }
+
+    try {
+      setIsAddingMeal(true);
+
+      await addMealLog({
+        userId: user.id || user.uid,
+        foodName: analysisResult.foodName,
+        calories: parseMacroValue(analysisResult.calories),
+        proteins: parseMacroValue(analysisResult.macros?.protein),
+        carbs: parseMacroValue(analysisResult.macros?.carbs),
+        fat: parseMacroValue(analysisResult.macros?.fat),
+        quantity: 1,
+        mealType: "meal",
+      });
+
+      await fetchProfile(user.id || user.uid, true);
+      toast.success(`${analysisResult.foodName} added to meal log`);
+    } catch (error) {
+      console.error("❌ Failed add scanned meal:", error);
+      toast.error("Failed to add meal log.");
+    } finally {
+      setIsAddingMeal(false);
+    }
+  };
 
   // WELCOME TOAST
   useEffect(() => {
@@ -290,6 +331,9 @@ const AnalyzePage = () => {
               <AnalysisResult
                 result={analysisResult}
                 onClear={() => setAnalysisResult(null)}
+                onAddMeal={handleAddScanResultToMeal}
+                isAddingMeal={isAddingMeal}
+                canAddMeal={!isGuest}
               />
             )}
 
