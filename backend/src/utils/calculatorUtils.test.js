@@ -145,5 +145,68 @@ describe("calculatorUtils", () => {
         protein: 100,
       });
     });
+
+    test("returns defaults for under-18 profiles", () => {
+      expect(
+        calculateDailyNeeds(
+          60,
+          165,
+          "2010-01-01",
+          "Stay Healthy",
+          "female",
+          "moderate",
+        ),
+      ).toEqual({
+        calories: 2000,
+        protein: 100,
+      });
+    });
+
+    test("returns defaults for special physiological or medical flags", () => {
+      expect(
+        calculateDailyNeeds(
+          60,
+          165,
+          "1996-01-01",
+          "Stay Healthy",
+          "female",
+          "moderate",
+          { isPregnant: true },
+        ),
+      ).toEqual({
+        calories: 2000,
+        protein: 100,
+      });
+
+      expect(
+        calculateDailyNeeds(
+          60,
+          165,
+          "1996-01-01",
+          "Stay Healthy",
+          "female",
+          "moderate",
+          { isBreastfeeding: true },
+        ),
+      ).toEqual({
+        calories: 2000,
+        protein: 100,
+      });
+
+      expect(
+        calculateDailyNeeds(
+          60,
+          165,
+          "1996-01-01",
+          "Stay Healthy",
+          "female",
+          "moderate",
+          { hasMedicalCondition: true },
+        ),
+      ).toEqual({
+        calories: 2000,
+        protein: 100,
+      });
+    });
   });
 });

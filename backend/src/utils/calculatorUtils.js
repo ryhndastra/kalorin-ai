@@ -12,6 +12,7 @@ const MIN_TARGET_CALORIES = {
   male: 1500,
   female: 1200,
 };
+const DEFAULT_TARGETS = { calories: 2000, protein: 100 };
 
 const normalizeGender = (gender) => {
   if (typeof gender !== "string") return null;
@@ -50,18 +51,31 @@ const calculateDailyNeeds = (
   goal,
   gender,
   activityLevel,
+  clinicalFlags = {},
 ) => {
   // guard clause, kalau data ga lengkap kasih default standar minimal
   if (!weight || !height || !birthdate) {
-    return { calories: 2000, protein: 100 };
+    return { ...DEFAULT_TARGETS };
   }
 
   const age = calculateAge(birthdate);
   const normalizedGender = normalizeGender(gender);
   const normalizedActivityLevel = normalizeActivityLevel(activityLevel);
+  const isPregnant = Boolean(clinicalFlags.isPregnant);
+  const isBreastfeeding = Boolean(clinicalFlags.isBreastfeeding);
+  const hasMedicalCondition = Boolean(clinicalFlags.hasMedicalCondition);
 
-  if (!normalizedGender || age <= 0) {
-    return { calories: 2000, protein: 100 };
+  // Mifflin-St Jeor is for healthy adults. For under-18 or special
+  // physiological/medical conditions, avoid auto-targets and prefer manual targets.
+  if (
+    !normalizedGender ||
+    age <= 0 ||
+    age < 18 ||
+    isPregnant ||
+    isBreastfeeding ||
+    hasMedicalCondition
+  ) {
+    return { ...DEFAULT_TARGETS };
   }
 
   const numericWeight = parseFloat(weight);
@@ -106,6 +120,7 @@ const calculateDailyNeeds = (
 module.exports = {
   ACTIVITY_FACTORS,
   calculateDailyNeeds,
+  calculateAge,
   normalizeActivityLevel,
   normalizeGender,
 };

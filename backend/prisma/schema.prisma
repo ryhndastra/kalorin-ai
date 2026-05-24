@@ -20,6 +20,9 @@ model Profile {
   avatarPath     String?
   birthdate      DateTime?
   gender         String?
+  isPregnant     Boolean? @default(false)
+  isBreastfeeding Boolean? @default(false)
+  hasMedicalCondition Boolean? @default(false)
   activityLevel  String?  @default("sedentary")
   weight         Float?
   height         Float?

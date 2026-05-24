@@ -39,6 +39,9 @@ const ProfilePage = () => {
       height: userData?.height || 0,
       gender: userData?.gender || "",
       activityLevel: userData?.activityLevel || "sedentary",
+      isPregnant: Boolean(userData?.isPregnant),
+      isBreastfeeding: Boolean(userData?.isBreastfeeding),
+      hasMedicalCondition: Boolean(userData?.hasMedicalCondition),
       goal: userData?.goal || "Stay Healthy",
       dailyCalories: userData?.dailyCalories || 2000,
       proteinTarget: userData?.proteinTarget || 100,
@@ -84,6 +87,9 @@ const ProfilePage = () => {
               birthdate: tempData.birthdate,
               gender: tempData.gender,
               activityLevel: tempData.activityLevel,
+              isPregnant: tempData.isPregnant,
+              isBreastfeeding: tempData.isBreastfeeding,
+              hasMedicalCondition: tempData.hasMedicalCondition,
               goal: tempData.goal,
               weight: parseFloat(tempData.weight) || 0,
               height: parseFloat(tempData.height) || 0,
@@ -258,6 +264,44 @@ const ProfilePage = () => {
                   {getActivityLevelDescription(tempData.activityLevel)}
                 </p>
               </div>
+            </div>
+            <div className="space-y-2 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+              <label className="flex items-center gap-3 text-sm font-semibold text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={Boolean(tempData.isPregnant)}
+                  onChange={(e) =>
+                    setTempData({ ...tempData, isPregnant: e.target.checked })
+                  }
+                />
+                Pregnant
+              </label>
+              <label className="flex items-center gap-3 text-sm font-semibold text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={Boolean(tempData.isBreastfeeding)}
+                  onChange={(e) =>
+                    setTempData({
+                      ...tempData,
+                      isBreastfeeding: e.target.checked,
+                    })
+                  }
+                />
+                Breastfeeding
+              </label>
+              <label className="flex items-center gap-3 text-sm font-semibold text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={Boolean(tempData.hasMedicalCondition)}
+                  onChange={(e) =>
+                    setTempData({
+                      ...tempData,
+                      hasMedicalCondition: e.target.checked,
+                    })
+                  }
+                />
+                Have medical condition
+              </label>
             </div>
             <div className="flex gap-4">
               <div className="flex-1">

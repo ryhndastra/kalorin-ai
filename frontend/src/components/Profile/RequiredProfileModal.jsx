@@ -16,6 +16,9 @@ const RequiredProfileModal = () => {
     birthdate: "",
     gender: "",
     activityLevel: "sedentary",
+    isPregnant: false,
+    isBreastfeeding: false,
+    hasMedicalCondition: false,
     weight: "",
     height: "",
   });
@@ -53,6 +56,9 @@ const RequiredProfileModal = () => {
         birthdate: formData.birthdate,
         gender: formData.gender,
         activityLevel: formData.activityLevel,
+        isPregnant: formData.isPregnant,
+        isBreastfeeding: formData.isBreastfeeding,
+        hasMedicalCondition: formData.hasMedicalCondition,
         weight,
         height,
         goal: userData?.goal || "Stay Healthy",
@@ -143,6 +149,41 @@ const RequiredProfileModal = () => {
                 {getActivityLevelDescription(formData.activityLevel)}
               </p>
             </div>
+          </div>
+
+          <div className="space-y-2 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+            <label className="flex items-center gap-3 text-sm font-semibold text-gray-700">
+              <input
+                type="checkbox"
+                checked={formData.isPregnant}
+                onChange={(e) => handleChange("isPregnant", e.target.checked)}
+              />
+              Pregnant
+            </label>
+            <label className="flex items-center gap-3 text-sm font-semibold text-gray-700">
+              <input
+                type="checkbox"
+                checked={formData.isBreastfeeding}
+                onChange={(e) =>
+                  handleChange("isBreastfeeding", e.target.checked)
+                }
+              />
+              Breastfeeding
+            </label>
+            <label className="flex items-center gap-3 text-sm font-semibold text-gray-700">
+              <input
+                type="checkbox"
+                checked={formData.hasMedicalCondition}
+                onChange={(e) =>
+                  handleChange("hasMedicalCondition", e.target.checked)
+                }
+              />
+              Have medical condition
+            </label>
+            <p className="text-xs leading-5 text-gray-500">
+              For these conditions, daily targets are best set manually with
+              professional guidance.
+            </p>
           </div>
 
           <div className="flex gap-4">
