@@ -1,21 +1,27 @@
 const axios = require("axios");
 const redis = require("redis");
 const { AI_URL, AI_TIMEOUT, CACHE_TTL } = require("../config/aiConfig");
+const isTestEnv = process.env.NODE_ENV === "test";
 
 // REDIS CLIENT
 const redisClient = redis.createClient({
   url: process.env.REDIS_URL || "redis://localhost:6379",
 });
 
-redisClient.on("error", (err) => console.error("❌ Redis Error:", err));
-redisClient.on("connect", () => console.log("✅ Redis connected"));
+if (!isTestEnv) {
+  redisClient.on("error", (err) => console.error("❌ Redis Error:", err));
+  redisClient.on("connect", () => console.log("✅ Redis connected"));
+}
 
 (async () => {
+  if (isTestEnv) return;
+
   try {
     if (!redisClient.isOpen) {
       await redisClient.connect();
     }
   } catch (error) {
+    if (isTestEnv) return;
     console.error("❌ Redis Connect Error:", error.message);
   }
 })();
