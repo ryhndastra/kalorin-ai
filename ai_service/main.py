@@ -1,5 +1,7 @@
 import os
+import asyncio
 import traceback
+import re
 from fastapi import FastAPI, HTTPException,UploadFile, File
 from classifier import predict_food
 from pydantic import BaseModel
@@ -15,13 +17,17 @@ import json
 
 
 load_dotenv()
+GEMINI_TIMEOUT_SECONDS = float(os.getenv("GEMINI_TIMEOUT_SECONDS", "12"))
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+
 # REDIS CLIENT
-redis_client = redis.Redis(
-    host="localhost",
-    port=6379,
-    decode_responses=True
+redis_client = redis.from_url(
+    REDIS_URL,
+    decode_responses=True,
+    socket_connect_timeout=1,
+    socket_timeout=1,
 )
-print("KEY:", os.getenv("GOOGLE_API_KEY"))
+
 # EXPLANATION CACHE (in-memory)
 # Key: "food_name|user_status|is_recommended"
 # Gemini hanya dipanggil kalau belum pernah ada di cache
@@ -66,6 +72,38 @@ genai.configure(api_key=GOOGLE_API_KEY)
 gemini_model = genai.GenerativeModel('gemini-2.5-flash')
 
 app = FastAPI(title="KaloriN AI Recommender Microservice", version="2.0")
+MODEL_READY = False
+
+def redis_get(key: str):
+    try:
+        return redis_client.get(key)
+    except Exception as e:
+        print(f"⚠️ Redis get skipped: {e}")
+        return None
+
+def redis_setex(key: str, ttl: int, value: str):
+    try:
+        redis_client.setex(key, ttl, value)
+    except Exception as e:
+        print(f"⚠️ Redis set skipped: {e}")
+
+async def generate_gemini_text(
+    prompt: str,
+    timeout: float = GEMINI_TIMEOUT_SECONDS,
+    generation_config: dict | None = None,
+) -> str:
+    def call_gemini():
+        return gemini_model.generate_content(
+            prompt,
+            generation_config=generation_config,
+            request_options={"timeout": timeout},
+        )
+
+    response = await asyncio.wait_for(
+        asyncio.to_thread(call_gemini),
+        timeout=timeout + 1,
+    )
+    return response.text.strip()
 
 # LOAD MODEL
 try:
@@ -77,6 +115,7 @@ try:
     scaler_food = joblib.load('recsys_scaler_food.pkl')
     ohe_user    = joblib.load('recsys_ohe_user.pkl')
     ohe_food    = joblib.load('recsys_ohe_food.pkl')
+    MODEL_READY = True
     print("✅ Model dan semua scaler berhasil dimuat!")
 except Exception as e:
     print(f"❌ Error loading model: {e}")
@@ -126,7 +165,7 @@ async def generate_explanation(food_name: str, user_status: str, is_recommended:
     cache_key = f"{food_name.lower()}|{user_status.lower()}"
 
     # Cache hit → ga perlu panggil Gemini
-    cached = redis_client.get(cache_key)
+    cached = redis_get(cache_key)
 
     if cached:
         print(f"⚡ Redis explanation cache hit")
@@ -141,13 +180,12 @@ async def generate_explanation(food_name: str, user_status: str, is_recommended:
             f"sangat cocok direkomendasikan untuk seseorang dengan status kesehatan '{user_status}'. "
             f"Fokus pada manfaat gizi makronya."
         )
-        response = gemini_model.generate_content(prompt)
-        text = response.text.strip()
-        redis_client.setex(cache_key,86400,text)  # simpan ke cache
+        text = await generate_gemini_text(prompt)
+        redis_setex(cache_key,86400,text)  # simpan ke cache
         return text
     except Exception:
         fallback = "Makanan ini direkomendasikan karena komposisi nutrisinya sangat mendukung profil kesehatan kamu."
-        redis_client.setex(cache_key,86400,fallback)  # simpan fallback ke cache juga
+        redis_setex(cache_key,86400,fallback)  # simpan fallback ke cache juga
         return fallback
 
 # HELPER: PREDICT SCORE (shared logic)
@@ -217,18 +255,186 @@ async def get_recommendation_with_explanation(data: InferenceRequest):
 insight_cache: dict[str, str] = {}
 behavioral_cache: dict[str, list] = {}
 
+def build_behavioral_fallback(data: BehavioralInsightRequest) -> list[dict]:
+    insights = []
+
+    if data.trackingDays <= 0:
+        return [
+            {
+                "type": "info",
+                "title": "Data Belum Ada",
+                "message": "Belum ada pola makan yang cukup untuk dianalisis minggu ini."
+            },
+            {
+                "type": "tip",
+                "title": "Mulai Tracking",
+                "message": "Catat beberapa meal agar pola kalori dan protein mulai terlihat."
+            },
+            {
+                "type": "info",
+                "title": "Baseline Kosong",
+                "message": "Insight akan lebih akurat setelah ada beberapa hari data."
+            }
+        ]
+
+    if data.underProteinDays > data.proteinGoalHitDays:
+        insights.append({
+            "type": "warning",
+            "title": "Protein Rendah",
+            "message": f"Protein masih rendah pada {data.underProteinDays} dari {data.trackingDays} hari tracking."
+        })
+    else:
+        insights.append({
+            "type": "success",
+            "title": "Protein Stabil",
+            "message": f"Target protein tercapai pada {data.proteinGoalHitDays} hari tracking."
+        })
+
+    if data.calorieSpikeDay:
+        insights.append({
+            "type": "info",
+            "title": "Kalori Puncak",
+            "message": f"Asupan kalori tertinggi muncul pada {data.calorieSpikeDay}."
+        })
+    elif data.averageCalories > 0:
+        insights.append({
+            "type": "info",
+            "title": "Kalori Rata",
+            "message": f"Rata-rata kalori minggu ini sekitar {data.averageCalories} kkal per hari."
+        })
+
+    if data.dominantFoods:
+        foods = ", ".join(data.dominantFoods[:2])
+        insights.append({
+            "type": "tip",
+            "title": "Pola Makanan",
+            "message": f"{foods} cukup sering muncul dalam catatan makan minggu ini."
+        })
+    elif data.highestCalorieFood:
+        insights.append({
+            "type": "tip",
+            "title": "Sumber Kalori",
+            "message": f"{data.highestCalorieFood} menjadi makanan dengan kalori tertinggi minggu ini."
+        })
+
+    if data.weekendOvereating:
+        insights.append({
+            "type": "warning",
+            "title": "Weekend Naik",
+            "message": "Kalori akhir pekan terlihat lebih tinggi dari target mingguan."
+        })
+
+    if data.lateNightEatingCount > 0:
+        insights.append({
+            "type": "tip",
+            "title": "Pola Malam",
+            "message": f"Ada {data.lateNightEatingCount} catatan makan larut malam minggu ini."
+        })
+
+    if len(insights) < 3 and data.dominantMealType:
+        insights.append({
+            "type": "info",
+            "title": "Meal Dominan",
+            "message": f"{data.dominantMealType} menjadi tipe meal yang paling sering dicatat."
+        })
+
+    if len(insights) < 3:
+        insights.append({
+            "type": "success" if data.trackingDays >= 4 else "info",
+            "title": "Konsistensi",
+            "message": f"Kamu mencatat makanan pada {data.trackingDays} hari dalam rentang ini."
+        })
+
+    while len(insights) < 3:
+        insights.append({
+            "type": "info",
+            "title": "Pola Mingguan",
+            "message": "Tambahkan lebih banyak catatan agar analisis perilaku makin tajam."
+        })
+
+    return insights[:3]
+
+def build_behavioral_ai_payload(data: BehavioralInsightRequest) -> dict:
+    return {
+        "tracking_days": data.trackingDays,
+        "tracking_consistency": data.trackingConsistency,
+        "calorie_spike_day": data.calorieSpikeDay,
+        "weekend_overeating": data.weekendOvereating,
+        "protein_goal_hit_days": data.proteinGoalHitDays,
+        "under_protein_days": data.underProteinDays,
+        "average_calories": data.averageCalories,
+        "average_protein": data.averageProtein,
+        "dominant_meal_type": data.dominantMealType,
+        "dominant_foods": data.dominantFoods[:3],
+        "highest_calorie_food": data.highestCalorieFood,
+        "highest_protein_food": data.highestProteinFood,
+        "weekend_calories": data.weekendCalories,
+        "weekday_calories": data.weekdayCalories,
+        "late_night_eating_count": data.lateNightEatingCount,
+    }
+
+def parse_gemini_json_array(raw: str) -> list:
+    text = raw.strip()
+    text = re.sub(r"```[a-zA-Z]*", "", text).replace("```", "").strip()
+
+    start = text.find("[")
+    end = text.rfind("]")
+    if start != -1 and end != -1 and end > start:
+        text = text[start:end + 1]
+
+    parse_candidates = [text]
+    repaired = re.sub(
+        r'(^|[{\[,]\s*)([A-Za-z_][A-Za-z0-9_]*)\s*:',
+        r'\1"\2":',
+        text,
+        flags=re.MULTILINE,
+    )
+    repaired = repaired.replace("'", '"')
+    repaired = re.sub(r",\s*([}\]])", r"\1", repaired)
+    parse_candidates.append(repaired)
+
+    for candidate in parse_candidates:
+        try:
+            parsed = json.loads(candidate)
+            if isinstance(parsed, dict):
+                parsed = parsed.get("insights") or parsed.get("data") or parsed.get("items")
+            if isinstance(parsed, list):
+                return parsed
+        except json.JSONDecodeError:
+            continue
+
+    extracted = []
+    for block in re.findall(r"\{[^{}]*\}", text, flags=re.DOTALL):
+        item = {}
+        for field in ("type", "title", "message"):
+            match = re.search(
+                rf'{field}\s*:\s*["\']?([^,"\';\n}}]+)',
+                block,
+                flags=re.IGNORECASE,
+            )
+            if match:
+                item[field] = match.group(1).strip()
+        if {"type", "title", "message"}.issubset(item):
+            extracted.append(item)
+
+    if extracted:
+        return extracted
+
+    raise json.JSONDecodeError("Could not parse Gemini JSON array", text, 0)
+
 @app.post("/api/daily-insight")
 async def get_daily_insight(data: DailyInsightRequest):
+    fallback = data.macro_context or "Stay consistent with your nutrition goals today!"
+    cache_key = f"daily-insight|{data.user_status.lower()}|{data.macro_context.lower()}"
+
+    cached = redis_get(cache_key)
+    if cached:
+        print("⚡ Redis insight cache hit")
+        return {
+            "insight_text": cached
+        }
+
     try:
-        cache_key = f"{data.user_status.lower()}|{data.macro_context.lower()}"
-
-        cached = redis_client.get(cache_key)
-        if cached:
-            print("⚡ Redis insight cache hit")
-            return {
-                "insight_text": cached
-            }
-
         prompt = (
             f"Kamu adalah AI Gizi di aplikasi. User dengan status {data.user_status} "
             f"saat ini kondisinya: {data.macro_context}. "
@@ -236,149 +442,122 @@ async def get_daily_insight(data: DailyInsightRequest):
             f"Gunakan bahasa Inggris yang natural seperti contoh ini: "
             f"'You need 38g more protein today. Try adding a chicken breast!'"
         )
-        response = gemini_model.generate_content(prompt)
-        text = response.text.strip()
-        redis_client.setex(cache_key,43200,text)
+        text = await generate_gemini_text(prompt)
+        redis_setex(cache_key,43200,text)
 
         return {"insight_text": text}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    
+        print(f"⚠️ Daily insight fallback used: {e}")
+        redis_setex(cache_key,1800,fallback)
+        return {"insight_text": fallback}
+
 # ENDPOINT: /api/behavioral-insights
 @app.post("/api/behavioral-insights")
 async def get_behavioral_insights(data: BehavioralInsightRequest):
+    ai_payload = build_behavioral_ai_payload(data)
+    cache_key = f"behavioral-insights:v3|{json.dumps(ai_payload, sort_keys=True)}"
     try:
-        cache_key = str(data.dict())
-
         # CACHE HIT
-        cached = redis_client.get(cache_key)
+        cached = redis_get(cache_key)
 
         if cached:
             print(" Redis behavioral cache hit")
 
             return {
-                "insights": json.loads(cached)
+                "insights": json.loads(cached),
+                "source": "cache"
             }
 
-        prompt = f"""
-            Kamu adalah AI nutrition behavior analyst di aplikasi nutrition modern.
-
-            Tugasmu:
-            Menganalisa pola makan dan perilaku nutrisi user berdasarkan data yang diberikan.
-
-            Generate tepat 3 insight singkat dalam format JSON.
-
-            Campurkan tipe insight secara natural:
-            - warning
-            - success
-            - info
-            - tip
-
-            Insight HARUS berbasis data nyata.
-            Jangan membuat asumsi di luar data.
-
-            Kamu boleh menganalisa:
-            - pola makanan yang sering dikonsumsi
-            - dominasi gorengan atau processed food
-            - pola makan malam terlalu larut
-            - konsistensi protein
-            - perbedaan weekday dan weekend
-            - kualitas sumber nutrisi
-            - kebiasaan tracking
-            - pola meal timing
-
-            Minimal satu insight HARUS membahas food behavior pattern jika datanya relevan.
-
-            Jangan buat semua insight negatif.
-
-            Tone:
-            - modern
-            - pintar
-            - ringkas
-            - manusiawi
-            - analitis
-            - observasional
-            - praktikal
-
-            Hindari:
-            - bahasa corporate
-            - generic health advice
-            - motivational phrases
-            - emotional encouragement
-            - celebratory language
-            - kata dramatis
-            - mengulang insight sama
-            - kalimat terlalu panjang
-            - sounding like fitness influencer
-
-            Fokus pada observasi perilaku, bukan motivasi.
-
-            Rules:
-            - maksimal 18 kata per message
-            - title maksimal 3 kata
-            - jangan pakai emoji
-            - tanpa markdown
-            - return ONLY valid JSON array
-            - gunakan bahasa Indonesia natural
-            - hindari wording awkward atau translasi literal
-
-            Format:
-            [
-                {{
-                    "type": "warning",
-                    "title": "Protein Rendah",
-                    "message": "Target protein hanya tercapai pada 1 dari 7 hari tracking."
-                }},
-                {{
-                    "type": "tip",
-                    "title": "Pola Malam",
-                    "message": "Makan terlalu malam cukup sering muncul minggu ini."
-                }},
-                {{
-                    "type": "info",
-                    "title": "Pilihan Makanan",
-                    "message": "Keripik cukup mendominasi sumber kalori minggu ini."
-                }}
-            ]
-
-            Nutrition Patterns:
-            {data.dict()}
-            """
+        compact_payload = json.dumps(ai_payload, ensure_ascii=False, separators=(",", ":"))
+        prompt = (
+            "Return ONLY minified valid JSON array with exactly 3 items. "
+            'Each item: {"type":"warning|success|info|tip","title":"max 3 kata","message":"max 14 kata"}. '
+            "Bahasa Indonesia natural. No markdown. Use double quotes. "
+            "At least one item about dominant_foods if present. Data="
+            f"{compact_payload}"
+        )
 
         print("GEMINI CALLED")
-        response = gemini_model.generate_content(prompt)
-        raw = response.text.strip()
-        raw = raw.replace("```json", "").replace("```", "").strip()
-        parsed = json.loads(raw)
+        raw = await generate_gemini_text(
+            prompt,
+            generation_config={
+                "temperature": 0.2,
+                "max_output_tokens": 1024,
+                "response_mime_type": "application/json",
+            },
+        )
+        try:
+            parsed = parse_gemini_json_array(raw)
+        except Exception as parse_error:
+            print(f"⚠️ Gemini parse retry: {type(parse_error).__name__}: {parse_error}")
+            print(f"⚠️ Gemini raw preview: {raw[:500]}")
+            retry_prompt = (
+                "Output valid JSON only. Exactly 3 compact objects in an array. "
+                'No prose. Example [{"type":"info","title":"Pola","message":"Kalimat pendek."}]. '
+                f"Data={compact_payload}"
+            )
+            raw = await generate_gemini_text(
+                retry_prompt,
+                generation_config={
+                    "temperature": 0,
+                    "max_output_tokens": 1024,
+                    "response_mime_type": "application/json",
+                },
+            )
+            parsed = parse_gemini_json_array(raw)
+        if not isinstance(parsed, list) or len(parsed) < 3:
+            raise ValueError("Gemini did not return a JSON array")
 
         # CACHE STORE (12 HOURS)
-        redis_client.setex(
+        redis_setex(
             cache_key,
             43200,
             json.dumps(parsed)
         )
 
         return {
-            "insights": parsed
+            "insights": parsed,
+            "source": "gemini"
         }
 
     except Exception as e:
-        traceback.print_exc()
+        print(f"⚠️ Behavioral Gemini fallback used: {type(e).__name__}: {e}")
+        if "raw" in locals():
+            print(f"⚠️ Gemini raw preview: {raw[:500]}")
+        fallback = build_behavioral_fallback(data)
         return {
-            "insights": [
-                {
-                    "type": "info",
-                    "title": "Insight Gagal",
-                    "message": "Insight perilaku belum dapat dibuat."
-                }
-            ]
+            "insights": fallback,
+            "source": "fallback"
         }
 
 # ENDPOINT 4: /api/cache/stats buat debugging
+@app.get("/health")
+def health_check():
+    redis_connected = False
+    try:
+        redis_connected = bool(redis_client.ping())
+    except Exception:
+        redis_connected = False
+
+    return {
+        "ok": True,
+        "model_ready": MODEL_READY,
+        "redis_connected": redis_connected,
+        "gemini_configured": bool(GOOGLE_API_KEY),
+        "gemini_timeout_seconds": GEMINI_TIMEOUT_SECONDS,
+    }
+
 @app.get("/api/cache/stats")
 def cache_stats():
+    redis_connected = False
+    try:
+        redis_connected = bool(redis_client.ping())
+    except Exception:
+        redis_connected = False
+
     return {
-        "redis_connected": redis_client.ping(),
+        "redis_connected": redis_connected,
+        "gemini_timeout_seconds": GEMINI_TIMEOUT_SECONDS,
         # "explanation_cache_size": len(explanation_cache), udah pake Redis, jadi ga perlu cache in-memory lagi
         # "insight_cache_size": len(insight_cache),
         # "behavioral_cache_size": len(behavioral_cache),

@@ -6,7 +6,7 @@ export const API_BASE_URL = rawApiUrl.replace(/\/+$/, "").replace(/\/api$/, "");
 
 const apiClient = axios.create({
   baseURL: `${API_BASE_URL}/api`,
-  timeout: 10000,
+  timeout: 30000,
 });
 
 export default apiClient;

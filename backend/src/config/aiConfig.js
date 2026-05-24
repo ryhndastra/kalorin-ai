@@ -1,16 +1,10 @@
 const AI_URL = process.env.AI_URL || "http://localhost:8000";
-
-const MAX_FOOD_SCAN = 15;
-
-const AI_TIMEOUT = 10000;
-
-const CACHE_TTL = 1000 * 60 * 30; // 30 min
-
-const INSIGHT_TTL = 1000 * 60 * 60 * 6; // 6h
-
-const RECOMMENDATION_LIST_TTL = 1000 * 60 * 60 * 6; // 6h
-
-const CONCURRENT_LIMIT = 3;
+const MAX_FOOD_SCAN = 10;
+const AI_TIMEOUT = Number(process.env.AI_TIMEOUT || 15000);
+const CACHE_TTL = 1000 * 60 * 30;
+const INSIGHT_TTL = 1000 * 60 * 60 * 6;
+const RECOMMENDATION_LIST_TTL = 1000 * 60 * 60 * 6;
+const CONCURRENT_LIMIT = 1;
 
 module.exports = {
   AI_URL,

@@ -21,6 +21,7 @@ const InsightsPage = () => {
   // STATES
   const [trends, setTrends] = useState([]);
   const [behavioralInsights, setBehavioralInsights] = useState([]);
+  const [behavioralSource, setBehavioralSource] = useState("unknown");
   const [comparison, setComparison] = useState({
     caloriesChange: 0,
     proteinsChange: 0,
@@ -89,6 +90,7 @@ const InsightsPage = () => {
         setBehavioralLoading(true);
         const response = await getBehavioralInsights(userId);
         setBehavioralInsights(response.data);
+        setBehavioralSource(response.source || "unknown");
       } catch (error) {
         console.error("❌ Failed fetching behavioral insights:", error);
       } finally {
@@ -171,7 +173,10 @@ const InsightsPage = () => {
           {behavioralLoading ? (
             <BehavioralInsightsSkeleton />
           ) : (
-            <BehavioralInsightsList insights={behavioralInsights} />
+            <BehavioralInsightsList
+              insights={behavioralInsights}
+              source={behavioralSource}
+            />
           )}
         </div>
       </div>

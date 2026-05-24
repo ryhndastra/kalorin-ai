@@ -1,5 +1,3 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
 const { searchExternalFood } = require("../services/externalApiService");
 const prisma = require("../config/prisma");
 
@@ -41,7 +39,9 @@ const searchFood = async (req, res) => {
     const { keyword } = req.query;
 
     if (!keyword) {
-      return res.status(400).json({ success: false, message: "Keyword dibutuhkan" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Keyword dibutuhkan" });
     }
 
     // Cari di Database Lokal (Supabase) dulu
@@ -58,7 +58,9 @@ const searchFood = async (req, res) => {
     // Kalau di lokal datanya kosong atau kurang dari 3, panggil API Luar
     let externalFoods = [];
     if (localFoods.length < 3) {
-      console.log(`Pencarian lokal untuk "${keyword}" sedikit, memanggil API eksternal...`);
+      console.log(
+        `Pencarian lokal untuk "${keyword}" sedikit, memanggil API eksternal...`,
+      );
       externalFoods = await searchExternalFood(keyword);
     }
 

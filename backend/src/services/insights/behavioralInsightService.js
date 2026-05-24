@@ -21,16 +21,22 @@ const getBehavioralInsightsService = async (userId) => {
     const response = await requestBehavioralInsights(payload);
 
     // RETURN DATA
-    return response.insights || [];
+    return {
+      insights: response.insights || [],
+      source: response.source || "unknown",
+    };
   } catch (error) {
     console.error("❌ AI Behavioral Insight Error:", error.message);
-    return [
-      {
-        type: "info",
-        title: "Insights Unavailable",
-        message: "Behavioral insights could not be generated.",
-      },
-    ];
+    return {
+      insights: [
+        {
+          type: "info",
+          title: "Insights Unavailable",
+          message: "Behavioral insights could not be generated.",
+        },
+      ],
+      source: "backend-fallback",
+    };
   }
 };
 

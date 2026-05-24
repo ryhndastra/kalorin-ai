@@ -16,18 +16,22 @@ async function main() {
   console.log("Sedang memasukkan data makanan...");
 
   for (let food of foodData) {
+    const foodPayload = {
+      name: food.name,
+      calories: food.calories,
+      proteins: food.proteins,
+      fat: food.fat,
+      carbohydrate: food.carbohydrate,
+      image: food.image,
+      foodCluster: food.food_cluster,
+    };
+
     await prisma.food.upsert({
       where: { id: food.id },
-      update: {},
+      update: foodPayload,
       create: {
         id: food.id,
-        name: food.name,
-        calories: food.calories,
-        proteins: food.proteins,
-        fat: food.fat,
-        carbohydrate: food.carbohydrate,
-        image: food.image,
-        foodCluster: food.food_cluster,
+        ...foodPayload,
       },
     });
   }

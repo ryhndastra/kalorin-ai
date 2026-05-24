@@ -89,11 +89,12 @@ const getBehavioralInsights = async (req, res) => {
       });
     }
 
-    const insights = await getBehavioralInsightsService(userId);
+    const result = await getBehavioralInsightsService(userId);
 
     res.json({
       success: true,
-      data: insights,
+      data: result.insights,
+      source: result.source,
     });
   } catch (error) {
     console.error("❌ Error getBehavioralInsights:", error);

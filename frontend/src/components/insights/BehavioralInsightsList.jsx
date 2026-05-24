@@ -1,5 +1,11 @@
 import React from "react";
-import { Brain, TriangleAlert, CircleCheckBig, Info } from "lucide-react";
+import {
+  Brain,
+  TriangleAlert,
+  CircleCheckBig,
+  Info,
+  Lightbulb,
+} from "lucide-react";
 
 const insightStyles = {
   success: {
@@ -26,9 +32,26 @@ const insightStyles = {
     iconColor: "text-blue-600",
     badge: "bg-blue-100 text-blue-700",
   },
+  tip: {
+    icon: Lightbulb,
+    bg: "bg-emerald-50",
+    border: "border-emerald-100",
+    iconBg: "bg-emerald-100",
+    iconColor: "text-emerald-600",
+    badge: "bg-emerald-100 text-emerald-700",
+  },
 };
 
-const BehavioralInsightsList = ({ insights }) => {
+const sourceLabel = {
+  gemini: "RinAi",
+  cache: "RinAi",
+  fallback: "AiRin",
+  "local-low-data": "AiRin",
+  "backend-fallback": "AiRin",
+  unknown: "AiRin",
+};
+
+const BehavioralInsightsList = ({ insights, source = "unknown" }) => {
   return (
     <div className="bg-gradient-to-br from-white to-[#F8FAFC] rounded-3xl p-8 shadow-sm border border-gray-100 overflow-hidden relative">
       {/* GLOW */}
@@ -47,6 +70,9 @@ const BehavioralInsightsList = ({ insights }) => {
             Personalized observations based on your nutrition patterns
           </p>
         </div>
+        <span className="ml-auto rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
+          {sourceLabel[source] || sourceLabel.unknown}
+        </span>
       </div>
 
       {/* EMPTY */}
