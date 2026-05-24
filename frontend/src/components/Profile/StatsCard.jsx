@@ -1,7 +1,8 @@
 import React from "react";
-import { PencilLine, User, Weight, Ruler } from "lucide-react";
+import { PencilLine, User, Weight, Ruler, UserRound } from "lucide-react";
 import ProfileItem from "./ProfileItem";
 import { useUser } from "../../context/UserContext";
+import { getGenderLabel } from "../../utils/profileOptions";
 
 const StatsCard = ({ onEdit }) => {
   const { userData } = useUser();
@@ -38,6 +39,11 @@ const StatsCard = ({ onEdit }) => {
           label="Age"
           value={calculateAge(userData?.birthdate)}
           unit="years"
+        />
+        <ProfileItem
+          icon={UserRound}
+          label="Gender"
+          value={getGenderLabel(userData?.gender)}
         />
         <ProfileItem
           icon={Weight}

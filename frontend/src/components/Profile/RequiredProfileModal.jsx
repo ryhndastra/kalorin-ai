@@ -3,12 +3,19 @@ import { Loader2 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useUser } from "../../context/UserContext";
 import { updateUserProfile } from "../../api/userService";
+import {
+  ACTIVITY_LEVEL_OPTIONS,
+  GENDER_OPTIONS,
+  getActivityLevelDescription,
+} from "../../utils/profileOptions";
 
 const RequiredProfileModal = () => {
   const { user } = useAuth();
   const { userData, fetchProfile } = useUser();
   const [formData, setFormData] = useState({
     birthdate: "",
+    gender: "",
+    activityLevel: "sedentary",
     weight: "",
     height: "",
   });
@@ -24,8 +31,14 @@ const RequiredProfileModal = () => {
     const weight = parseFloat(formData.weight);
     const height = parseFloat(formData.height);
 
-    if (!formData.birthdate || !weight || !height) {
-      setErrorMsg("Tanggal lahir, berat badan, dan tinggi badan wajib diisi.");
+    if (
+      !formData.birthdate ||
+      !formData.gender ||
+      !formData.activityLevel ||
+      !weight ||
+      !height
+    ) {
+      setErrorMsg("Tanggal lahir, gender, aktivitas, berat, dan tinggi wajib diisi.");
       return;
     }
 
@@ -38,6 +51,8 @@ const RequiredProfileModal = () => {
         name: user.displayName || userData?.fullName || "User",
         email: user.email || userData?.email,
         birthdate: formData.birthdate,
+        gender: formData.gender,
+        activityLevel: formData.activityLevel,
         weight,
         height,
         goal: userData?.goal || "Stay Healthy",
@@ -60,7 +75,7 @@ const RequiredProfileModal = () => {
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/45 backdrop-blur-sm" />
 
-      <div className="relative w-full max-w-md rounded-[32px] bg-white p-8 shadow-2xl">
+      <div className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[32px] bg-white p-8 shadow-2xl">
         <div className="mb-6">
           <h3 className="text-xl font-bold text-gray-900">
             Lengkapi Data Tubuh
@@ -88,6 +103,46 @@ const RequiredProfileModal = () => {
               value={formData.birthdate}
               onChange={(e) => handleChange("birthdate", e.target.value)}
             />
+          </div>
+
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="ml-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                Gender
+              </label>
+              <select
+                className="mt-1 w-full rounded-2xl border border-gray-100 bg-gray-50 p-4 font-bold text-gray-700 outline-none transition-all focus:border-green-500"
+                value={formData.gender}
+                onChange={(e) => handleChange("gender", e.target.value)}
+              >
+                <option value="">Select</option>
+                {GENDER_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex-1">
+              <label className="ml-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                Activity
+              </label>
+              <select
+                className="mt-1 w-full rounded-2xl border border-gray-100 bg-gray-50 p-4 font-bold text-gray-700 outline-none transition-all focus:border-green-500"
+                value={formData.activityLevel}
+                onChange={(e) => handleChange("activityLevel", e.target.value)}
+              >
+                {ACTIVITY_LEVEL_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-2 min-h-5 text-xs font-medium leading-5 text-gray-500">
+                {getActivityLevelDescription(formData.activityLevel)}
+              </p>
+            </div>
           </div>
 
           <div className="flex gap-4">
