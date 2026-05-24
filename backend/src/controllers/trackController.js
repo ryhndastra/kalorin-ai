@@ -9,7 +9,7 @@ const {
 } = require("../utils/requestValidation");
 
 // ADD MEAL TO DAILY LOG
-const addMealLog = async (req, res) => {
+const addMealLog = async (req, res, next) => {
   try {
     const {
       foodId,
@@ -65,16 +65,12 @@ const addMealLog = async (req, res) => {
       data: mealLog,
     });
   } catch (error) {
-    console.error("❌ Error addMealLog:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    next(error);
   }
 };
 
 // GET DAILY LOGS
-const getDailyLogs = async (req, res) => {
+const getDailyLogs = async (req, res, next) => {
   try {
     const { date } = req.query;
     const userId = req.user?.uid;
@@ -137,11 +133,7 @@ const getDailyLogs = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("❌ Error getDailyLogs:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    next(error);
   }
 };
 

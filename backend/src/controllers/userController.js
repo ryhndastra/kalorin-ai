@@ -12,7 +12,7 @@ const {
   hasInvalidNumber,
 } = require("../utils/requestValidation");
 
-const createOrUpdateProfile = async (req, res) => {
+const createOrUpdateProfile = async (req, res, next) => {
   try {
     const {
       name,
@@ -169,12 +169,11 @@ const createOrUpdateProfile = async (req, res) => {
 
     res.json({ success: true, data: profile });
   } catch (error) {
-    console.error("Error in createOrUpdateProfile:", error);
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const getProfile = async (req, res) => {
+const getProfile = async (req, res, next) => {
   try {
     const userId = req.user?.uid;
 
@@ -263,8 +262,7 @@ const getProfile = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error in getProfile:", error);
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 

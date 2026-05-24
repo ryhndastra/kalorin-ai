@@ -1,6 +1,6 @@
 const { scanFoodImage } = require("../services/scannerService");
 
-const scanFoodController = async (req, res) => {
+const scanFoodController = async (req, res, next) => {
   try {
     // NO FILE
     if (!req.file) {
@@ -14,12 +14,7 @@ const scanFoodController = async (req, res) => {
     const result = await scanFoodImage(req.file.buffer, req.file.originalname);
     return res.json(result);
   } catch (error) {
-    console.error(error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error.",
-    });
+    return next(error);
   }
 };
 

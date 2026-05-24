@@ -6,6 +6,10 @@ const {
   parseCorsOrigins,
   validateCriticalEnv,
 } = require("./config/env");
+const {
+  errorHandler,
+  notFoundHandler,
+} = require("./middleware/errorHandler");
 
 // import Controllers
 const { getAllFoods, getFoodById, searchFood } = require("./controllers/foodController");
@@ -83,6 +87,9 @@ app.post("/api/ai/food-list", authenticateFirebaseToken, getRecommendedFoodList)
  * Body: { userId, foodId }
  */
 app.post("/api/ai/food-detail", authenticateFirebaseToken, getFoodRecommendation);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 // Start Server
 app.listen(PORT, () => {

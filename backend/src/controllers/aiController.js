@@ -9,7 +9,7 @@ const {
 } = require("../utils/requestValidation");
 
 // QUICK INSIGHT
-const getQuickInsight = async (req, res) => {
+const getQuickInsight = async (req, res, next) => {
   try {
     const { macroContext } = req.body;
     const userId = req.user?.uid;
@@ -28,17 +28,12 @@ const getQuickInsight = async (req, res) => {
       recommendation,
     });
   } catch (error) {
-    console.error("❌ Controller Insight Error:", error.message);
-
-    return res.status(500).json({
-      success: false,
-      error: error.message || "Failed to generate insight",
-    });
+    return next(error);
   }
 };
 
 // FOOD LIST
-const getRecommendedFoodList = async (req, res) => {
+const getRecommendedFoodList = async (req, res, next) => {
   try {
     const userId = req.user?.uid;
 
@@ -56,17 +51,12 @@ const getRecommendedFoodList = async (req, res) => {
       data,
     });
   } catch (error) {
-    console.error("❌ Controller Recommendation Error:", error.message);
-
-    return res.status(500).json({
-      success: false,
-      error: error.message || "Failed to generate recommendations",
-    });
+    return next(error);
   }
 };
 
 // FOOD DETAIL
-const getFoodRecommendation = async (req, res) => {
+const getFoodRecommendation = async (req, res, next) => {
   try {
     const { foodId } = req.body;
     const userId = req.user?.uid;
@@ -85,12 +75,7 @@ const getFoodRecommendation = async (req, res) => {
       recommendation,
     });
   } catch (error) {
-    console.error("❌ Controller Food Detail Error:", error.message);
-
-    return res.status(500).json({
-      success: false,
-      error: error.message || "Failed to get detail recommendation",
-    });
+    return next(error);
   }
 };
 

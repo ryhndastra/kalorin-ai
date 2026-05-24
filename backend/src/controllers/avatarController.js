@@ -15,7 +15,7 @@ const getExtension = (file) => {
   return ".jpg";
 };
 
-const uploadAvatar = async (req, res) => {
+const uploadAvatar = async (req, res, next) => {
   try {
     const userId = req.user?.uid;
     const file = req.file;
@@ -79,12 +79,7 @@ const uploadAvatar = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error uploadAvatar:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Failed to upload avatar",
-    });
+    return next(error);
   }
 };
 
