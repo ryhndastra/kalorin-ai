@@ -21,3 +21,21 @@ export const updateUserProfile = async (profileData) => {
     throw error;
   }
 };
+
+export const uploadProfileAvatar = async (file) => {
+  try {
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    const response = await apiClient.post("/profile/avatar", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error uploading avatar:", error);
+    throw error;
+  }
+};
