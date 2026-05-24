@@ -3,13 +3,14 @@ import { useAuth } from "../context/AuthContext";
 import { useUser } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../config/firebase";
-import { signOut } from "firebase/auth";
+import { signOut, updateProfile as updateFirebaseProfile } from "firebase/auth";
 import Navbar from "../components/Navbar/Navbar";
 import ProfileHero from "../components/Profile/ProfileHero";
 import StatsCard from "../components/Profile/StatsCard";
 import GoalsCard from "../components/Profile/GoalsCard";
 import EditModal from "../components/Profile/EditModal";
 import { updateUserProfile } from "../api/userService";
+import { PencilLine, UserRound } from "lucide-react";
 
 const ProfilePage = () => {
   const { user } = useAuth();
@@ -24,6 +25,7 @@ const ProfilePage = () => {
   // buka modal dan isi data sementara dengan data dari Context (Backend)
   const openModal = (type) => {
     setTempData({
+      fullName: userData?.fullName || user?.displayName || "",
       birthdate: userData?.birthdate
         ? new Date(userData.birthdate).toISOString().split("T")[0]
         : "",
@@ -47,17 +49,37 @@ const ProfilePage = () => {
 
     setIsLoading(true);
     try {
-      const payload = {
-        userId: currentUserId,
-        name: user.displayName,
-        email: user.email,
-        birthdate: tempData.birthdate,
-        goal: tempData.goal,
-        weight: parseFloat(tempData.weight) || 0,
-        height: parseFloat(tempData.height) || 0,
-        dailyCalories: 0,
-        proteinTarget: 0,
-      };
+      const cleanName = tempData.fullName?.trim();
+
+      if (modalType === "name" && !cleanName) {
+        alert("Nama tidak boleh kosong!");
+        return;
+      }
+
+      if (modalType === "name" && auth.currentUser) {
+        await updateFirebaseProfile(auth.currentUser, {
+          displayName: cleanName,
+        });
+      }
+
+      const payload =
+        modalType === "name"
+          ? {
+              userId: currentUserId,
+              name: cleanName,
+              email: user.email,
+            }
+          : {
+              userId: currentUserId,
+              name: userData?.fullName || user.displayName,
+              email: user.email,
+              birthdate: tempData.birthdate,
+              goal: tempData.goal,
+              weight: parseFloat(tempData.weight) || 0,
+              height: parseFloat(tempData.height) || 0,
+              dailyCalories: 0,
+              proteinTarget: 0,
+            };
 
       console.log("🚀 Mengirim data (Triggering Auto-Calculate):", payload);
 
@@ -82,7 +104,7 @@ const ProfilePage = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate("/login");
+      navigate("/");
     } catch (error) {
       console.error("Gagal Logout:", error);
     }
@@ -98,6 +120,32 @@ const ProfilePage = () => {
       </div>
 
       <main className="max-w-[800px] mx-auto px-6 mt-8 space-y-6">
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="font-bold text-lg text-gray-800">Account Name</h3>
+            <button
+              onClick={() => openModal("name")}
+              className="text-green-600 flex items-center gap-2 text-sm font-semibold hover:bg-green-50 px-3 py-1 rounded-lg transition-all"
+            >
+              <PencilLine size={16} /> Edit
+            </button>
+          </div>
+
+          <div className="flex items-center gap-5 rounded-2xl bg-gray-50 p-4 border border-gray-100">
+            <div className="w-12 h-12 bg-[#E8F5E9] rounded-2xl flex items-center justify-center text-[#2E7D32]">
+              <UserRound size={24} strokeWidth={1.5} />
+            </div>
+            <div>
+              <p className="text-[#616161] font-medium text-base">
+                Display Name
+              </p>
+              <p className="font-bold text-[#212121] text-lg">
+                {userData?.fullName || user?.displayName || "User"}
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Stats Section - ambil data dari UserContext */}
         <StatsCard onEdit={() => openModal("stats")} />
 
@@ -119,10 +167,28 @@ const ProfilePage = () => {
         onSave={handleSave}
         isLoading={isLoading}
         title={
-          modalType === "stats" ? "Edit Body Stats" : "Change Goal Settings"
+          modalType === "name"
+            ? "Edit Account Name"
+            : modalType === "stats"
+              ? "Edit Body Stats"
+              : "Change Goal Settings"
         }
       >
-        {modalType === "stats" ? (
+        {modalType === "name" ? (
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-wider">
+              Full Name
+            </label>
+            <input
+              type="text"
+              className="w-full mt-1 p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-green-500 outline-none font-bold text-gray-700 transition-all"
+              value={tempData.fullName || ""}
+              onChange={(e) =>
+                setTempData({ ...tempData, fullName: e.target.value })
+              }
+            />
+          </div>
+        ) : modalType === "stats" ? (
           <div className="space-y-5">
             <div>
               <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-wider">

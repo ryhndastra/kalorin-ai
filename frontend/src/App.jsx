@@ -6,6 +6,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import HomePage from "./pages/HomePage";
 import GuestRoute from "./components/Navbar/GuestRoute";
+import ProtectedRoute from "./components/Navbar/ProtectedRoute";
 import ProfilePage from "./pages/ProfilePage";
 import { Toaster } from "react-hot-toast";
 import { useAuth } from "./context/AuthProvider";
@@ -42,11 +43,14 @@ export default function App() {
       <Toaster position="top-center" reverseOrder={false} />
       <Routes>
         <Route path="/analyze" element={<AnalyzePage />} />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/meals" element={<MealsPage />} />
-        <Route path="/track" element={<TrackPage />} />
-        <Route path="/insights" element={<InsightsPage />} />
+
+        <Route element={<ProtectedRoute />}>
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/meals" element={<MealsPage />} />
+          <Route path="/track" element={<TrackPage />} />
+          <Route path="/insights" element={<InsightsPage />} />
+        </Route>
 
         <Route element={<GuestRoute />}>
           <Route path="/" element={<LandingPage />} />

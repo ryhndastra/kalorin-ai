@@ -1,14 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut, User, Settings } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import { signOut } from "firebase/auth";
 import { auth } from "../../config/firebase";
 import toast from "react-hot-toast";
+import { useUser } from "../../context/UserContext";
 
 const NavUserDropdown = ({ user }) => {
+  const { userData } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const displayName = userData?.fullName || user?.displayName || "User";
 
   // tutup dd kalo klik di luar
   useEffect(() => {
@@ -28,16 +31,14 @@ const NavUserDropdown = ({ user }) => {
       sessionStorage.removeItem("welcomeToastShown");
 
       toast.success("Berhasil logout!");
-      navigate("/login");
+      navigate("/");
     } catch (error) {
       toast.error("Gagal logout", error);
     }
   };
 
   // ambil huruf pertama kalo user gaada foto
-  const initial = user?.displayName
-    ? user.displayName.charAt(0).toUpperCase()
-    : "U";
+  const initial = displayName.charAt(0).toUpperCase();
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -63,7 +64,7 @@ const NavUserDropdown = ({ user }) => {
         <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 py-2 z-50">
           <div className="px-4 py-3 border-b border-gray-100 mb-2">
             <p className="text-sm font-bold text-gray-800 truncate">
-              {user?.displayName || "User"}
+              {displayName}
             </p>
             <p className="text-xs text-gray-500 truncate">{user?.email}</p>
           </div>
@@ -73,12 +74,6 @@ const NavUserDropdown = ({ user }) => {
             className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
           >
             <User size={16} /> Profile
-          </Link>
-          <Link
-            to="/profile"
-            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors mb-2"
-          >
-            <Settings size={16} /> Settings
           </Link>
 
           <button

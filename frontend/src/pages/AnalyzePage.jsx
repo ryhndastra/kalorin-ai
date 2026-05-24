@@ -232,7 +232,7 @@ const AnalyzePage = () => {
 
       {/* GUEST BANNER */}
       {isGuest && (
-        <div className="w-full bg-green-500 p-4">
+        <div className="w-full bg-green-500 p-4 mt-4">
           <div className="max-w-7xl mx-auto px-4 text-white text-sm font-medium flex justify-between items-center">
             <span>
               Sign in to track meals & get personalized recommendations
