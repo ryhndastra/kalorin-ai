@@ -12,6 +12,7 @@ const NavUserDropdown = ({ user }) => {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const displayName = userData?.fullName || user?.displayName || "User";
+  const avatarSrc = userData?.photoURL || user?.photoURL;
 
   // tutup dd kalo klik di luar
   useEffect(() => {
@@ -46,9 +47,9 @@ const NavUserDropdown = ({ user }) => {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 focus:outline-none"
       >
-        {user?.photoURL ? (
+        {avatarSrc ? (
           <img
-            src={user.photoURL}
+            src={avatarSrc}
             alt="Profile"
             className="w-10 h-10 rounded-full border-2 border-green-500 object-cover"
           />

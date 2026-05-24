@@ -20,6 +20,7 @@ const user_routes = require("./routes/userRoutes");
 const track_routes = require("./routes/trackRoutes");
 const insightRoutes = require("./routes/insightRoutes");
 const scannerRoutes = require("./routes/scannerRoutes");
+const avatarRoutes = require("./routes/avatarRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -45,6 +46,7 @@ app.use("/api/user", user_routes);
 app.use("/api/track", track_routes);
 app.use("/api/insights", insightRoutes);
 app.use("/api/scanner", scannerRoutes);
+app.use("/api/profile", avatarRoutes);
 
 // ENDPOINTS AI
 

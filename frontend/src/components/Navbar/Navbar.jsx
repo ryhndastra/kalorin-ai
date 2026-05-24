@@ -7,13 +7,17 @@ import { auth } from "../../config/firebase";
 import NavLinks from "./NavLinks";
 import NavUserDropdown from "./NavUserDropdown";
 
-const Navbar = ({ user, loading }) => {
+const Navbar = ({ user, loading, userData }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const navigate = useNavigate();
   const displayName =
-    auth.currentUser?.displayName || user?.displayName || "User";
+    userData?.fullName ||
+    auth.currentUser?.displayName ||
+    user?.displayName ||
+    "User";
+  const avatarSrc = userData?.photoURL || user?.photoURL;
 
   // HIDE ON SCROLL
   useEffect(() => {
@@ -161,7 +165,7 @@ const Navbar = ({ user, loading }) => {
                   {/* USER INFO */}
                   <div className="flex items-center gap-4 bg-[#F8FAFC] rounded-2xl p-4 border border-gray-100 mb-5">
                     <img
-                      src={user.photoURL}
+                      src={avatarSrc}
                       alt="Profile"
                       className="w-12 h-12 rounded-full object-cover"
                     />

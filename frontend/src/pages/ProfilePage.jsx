@@ -121,7 +121,7 @@ const ProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-[#eefaf1] pb-20">
-      <Navbar user={user} />
+      <Navbar user={user} userData={userData} />
 
       {/* Hero Section - ambil data Auth Firebase */}
       <div className="mt-20">

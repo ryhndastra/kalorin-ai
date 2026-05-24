@@ -1,8 +1,15 @@
-import React, { memo } from "react";
+import React, { memo, useRef, useState } from "react";
+import { Camera, Loader2 } from "lucide-react";
+import { uploadProfileAvatar } from "../../api/userService";
+import { useUser } from "../../context/UserContext";
 
 // memo() bakal ngecek: "data yang masuk (user & userData) berubah ga?"
 // kalau isinya sama kayak sebelumnya, dia skip re render.
 const ProfileHero = memo(({ user, userData }) => {
+  const { fetchProfile } = useUser();
+  const fileInputRef = useRef(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   console.log(
     "DEBUG - Render ProfileHero:",
     userData?.fullName || "Loading...",
@@ -13,6 +20,35 @@ const ProfileHero = memo(({ user, userData }) => {
   const height = userData?.height || "--";
   const bmi = userData?.bmi || "0.0";
   const bmiStatus = userData?.bmiStatus || "Unknown";
+  const avatarSrc =
+    userData?.photoURL ||
+    user?.photoURL ||
+    `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.uid || "Felix"}`;
+
+  const handleAvatarClick = () => {
+    if (!isUploading) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleAvatarChange = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file || !user?.id) return;
+
+    setIsUploading(true);
+
+    try {
+      await uploadProfileAvatar(file);
+      await fetchProfile(user.id, true);
+    } catch (error) {
+      console.error("Failed to upload avatar:", error);
+      alert(error.response?.data?.message || "Failed to upload profile photo.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   // helper untuk warna badge status BMI
   const getStatusStyle = (status) => {
@@ -36,14 +72,33 @@ const ProfileHero = memo(({ user, userData }) => {
       <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-black/10 rounded-full blur-2xl pointer-events-none"></div>
 
       {/* profile picture */}
-      <div className="relative z-10 w-28 h-28 bg-white/20 rounded-full border-4 border-white/40 overflow-hidden mb-4 shadow-2xl transition-transform hover:scale-105 duration-300">
+      <div className="relative z-10 mb-4">
+        <button
+          type="button"
+          onClick={handleAvatarClick}
+          disabled={isUploading}
+          className="relative h-28 w-28 overflow-hidden rounded-full border-4 border-white/40 bg-white/20 shadow-2xl transition-transform duration-300 hover:scale-105 disabled:cursor-not-allowed"
+          aria-label="Change profile photo"
+        >
         <img
-          src={
-            user?.photoURL ||
-            `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.uid || "Felix"}`
-          }
+          src={avatarSrc}
           className="w-full h-full object-cover"
           alt="profile"
+        />
+          <span className="absolute inset-x-0 bottom-0 flex h-9 items-center justify-center bg-black/45 text-white">
+            {isUploading ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Camera size={16} />
+            )}
+          </span>
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          className="hidden"
+          onChange={handleAvatarChange}
         />
       </div>
 
