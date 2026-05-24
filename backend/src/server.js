@@ -2,6 +2,10 @@ require("dotenv").config({ path: "./.env" });
 const express = require("express");
 const cors = require("cors");
 const { authenticateFirebaseToken } = require("./middleware/auth");
+const {
+  parseCorsOrigins,
+  validateCriticalEnv,
+} = require("./config/env");
 
 // import Controllers
 const { getAllFoods, getFoodById, searchFood } = require("./controllers/foodController");
@@ -24,9 +28,23 @@ const avatarRoutes = require("./routes/avatarRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const corsOrigins = parseCorsOrigins(process.env.CORS_ORIGINS);
+
+validateCriticalEnv();
 
 // middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow non-browser requests (curl/postman) and whitelisted browser origins.
+      if (!origin || corsOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+  }),
+);
 app.use(express.json());
 
 //  ENDPOINTS
