@@ -1,20 +1,22 @@
-import React, { useEffect, useRef } from "react";
+import React, { Suspense, lazy, useEffect, useRef } from "react";
 import { Routes, Route } from "react-router-dom";
-import LandingPage from "./pages/LandingPage";
-import AnalyzePage from "./pages/AnalyzePage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import HomePage from "./pages/HomePage";
 import GuestRoute from "./components/Navbar/GuestRoute";
 import ProtectedRoute from "./components/Navbar/ProtectedRoute";
-import ProfilePage from "./pages/ProfilePage";
 import { Toaster } from "react-hot-toast";
 import { useAuth } from "./context/AuthProvider";
 import { useUser } from "./context/UserContext";
-import MealsPage from "./pages/MealsPage";
-import TrackPage from "./pages/TrackPage";
-import InsightsPage from "./pages/InsightsPage";
-import RequiredProfileModal from "./components/Profile/RequiredProfileModal";
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const AnalyzePage = lazy(() => import("./pages/AnalyzePage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const HomePage = lazy(() => import("./pages/HomePage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const MealsPage = lazy(() => import("./pages/MealsPage"));
+const TrackPage = lazy(() => import("./pages/TrackPage"));
+const InsightsPage = lazy(() => import("./pages/InsightsPage"));
+const RequiredProfileModal = lazy(
+  () => import("./components/Profile/RequiredProfileModal"),
+);
 
 const hasCompleteBodyStats = (profile) => {
   if (!profile) return false;
@@ -47,23 +49,31 @@ export default function App() {
   return (
     <>
       <Toaster position="top-center" reverseOrder={false} />
-      <Routes>
-        <Route path="/analyze" element={<AnalyzePage />} />
+      <Suspense
+        fallback={
+          <div className="min-h-screen bg-[#eefaf1] pt-20 text-center text-sm text-gray-500">
+            Loading...
+          </div>
+        }
+      >
+        <Routes>
+          <Route path="/analyze" element={<AnalyzePage />} />
 
-        <Route element={<ProtectedRoute />}>
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/meals" element={<MealsPage />} />
-          <Route path="/track" element={<TrackPage />} />
-          <Route path="/insights" element={<InsightsPage />} />
-        </Route>
+          <Route element={<ProtectedRoute />}>
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/meals" element={<MealsPage />} />
+            <Route path="/track" element={<TrackPage />} />
+            <Route path="/insights" element={<InsightsPage />} />
+          </Route>
 
-        <Route element={<GuestRoute />}>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-        </Route>
-      </Routes>
+          <Route element={<GuestRoute />}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+          </Route>
+        </Routes>
+      </Suspense>
 
       {shouldShowRequiredProfileModal && <RequiredProfileModal />}
     </>

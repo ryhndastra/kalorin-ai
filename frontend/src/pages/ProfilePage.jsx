@@ -4,6 +4,7 @@ import { useUser } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../config/firebase";
 import { signOut, updateProfile as updateFirebaseProfile } from "firebase/auth";
+import toast from "react-hot-toast";
 import Navbar from "../components/Navbar/Navbar";
 import ProfileHero from "../components/Profile/ProfileHero";
 import StatsCard from "../components/Profile/StatsCard";
@@ -59,7 +60,7 @@ const ProfilePage = () => {
       const cleanName = tempData.fullName?.trim();
 
       if (modalType === "name" && !cleanName) {
-        alert("Nama tidak boleh kosong!");
+        toast.error("Nama tidak boleh kosong!");
         return;
       }
 
@@ -101,10 +102,11 @@ const ProfilePage = () => {
         await fetchProfile(currentUserId, true);
 
         setModalType(null);
+        toast.success("Profil berhasil diperbarui.");
       }
     } catch (error) {
       console.error("❌ Error Detail:", error.response?.data || error.message);
-      alert("Gagal simpan data profile!");
+      toast.error(error.response?.data?.message || "Gagal simpan data profile!");
     } finally {
       setIsLoading(false);
     }

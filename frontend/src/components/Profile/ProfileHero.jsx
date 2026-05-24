@@ -1,5 +1,6 @@
 import React, { memo, useRef, useState } from "react";
 import { Camera, Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 import { uploadProfileAvatar } from "../../api/userService";
 import { useUser } from "../../context/UserContext";
 
@@ -42,9 +43,12 @@ const ProfileHero = memo(({ user, userData }) => {
     try {
       await uploadProfileAvatar(file);
       await fetchProfile(user.id, true);
+      toast.success("Profile photo updated.");
     } catch (error) {
       console.error("Failed to upload avatar:", error);
-      alert(error.response?.data?.message || "Failed to upload profile photo.");
+      toast.error(
+        error.response?.data?.message || "Failed to upload profile photo.",
+      );
     } finally {
       setIsUploading(false);
     }
@@ -80,11 +84,11 @@ const ProfileHero = memo(({ user, userData }) => {
           className="relative h-28 w-28 overflow-hidden rounded-full border-4 border-white/40 bg-white/20 shadow-2xl transition-transform duration-300 hover:scale-105 disabled:cursor-not-allowed"
           aria-label="Change profile photo"
         >
-        <img
-          src={avatarSrc}
-          className="w-full h-full object-cover"
-          alt="profile"
-        />
+          <img
+            src={avatarSrc}
+            className="w-full h-full object-cover"
+            alt="profile"
+          />
           <span className="absolute inset-x-0 bottom-0 flex h-9 items-center justify-center bg-black/45 text-white">
             {isUploading ? (
               <Loader2 size={16} className="animate-spin" />
