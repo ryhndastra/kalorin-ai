@@ -10,6 +10,9 @@ const {
   getFoodPatterns,
   getStreaks,
 } = require("../controllers/insightController");
+const { authenticateFirebaseToken } = require("../middleware/auth");
+
+router.use(authenticateFirebaseToken);
 
 router.get("/weekly-summary", getWeeklySummary);
 router.get("/weekly-trends", getWeeklyTrends);

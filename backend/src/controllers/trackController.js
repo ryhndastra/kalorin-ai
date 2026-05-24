@@ -12,7 +12,6 @@ const {
 const addMealLog = async (req, res) => {
   try {
     const {
-      userId,
       foodId,
       foodName,
       calories,
@@ -22,6 +21,7 @@ const addMealLog = async (req, res) => {
       quantity = 1,
       mealType = "meal",
     } = req.body;
+    const userId = req.user?.uid;
 
     // VALIDATION
     if (!userId || !foodName) {
@@ -76,7 +76,8 @@ const addMealLog = async (req, res) => {
 // GET DAILY LOGS
 const getDailyLogs = async (req, res) => {
   try {
-    const { userId, date } = req.query;
+    const { date } = req.query;
+    const userId = req.user?.uid;
 
     // VALIDATION
     if (!userId) {
