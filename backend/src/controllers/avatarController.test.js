@@ -1,5 +1,6 @@
 jest.mock("../config/prisma", () => ({
   profile: {
+    findUnique: jest.fn(),
     update: jest.fn(),
   },
 }));
@@ -83,19 +84,24 @@ describe("uploadAvatar", () => {
   });
 
   test("uploads avatar and updates profile photoURL", async () => {
+    const remove = jest.fn().mockResolvedValue({ error: null });
     const upload = jest.fn().mockResolvedValue({ error: null });
     const getPublicUrl = jest
       .fn()
       .mockReturnValue({ data: { publicUrl: "https://cdn.test/avatar.png" } });
-    const from = jest.fn().mockReturnValue({ upload, getPublicUrl });
+    const from = jest.fn().mockReturnValue({ upload, getPublicUrl, remove });
 
     createSupabaseClient.mockReturnValue({
       storage: { from },
+    });
+    prisma.profile.findUnique.mockResolvedValue({
+      avatarPath: "uid-1/profile-old.png",
     });
 
     prisma.profile.update.mockResolvedValue({
       userId: "uid-1",
       photoURL: "https://cdn.test/avatar.png",
+      avatarPath: "uid-1/profile-new.png",
     });
 
     const req = {
@@ -111,11 +117,19 @@ describe("uploadAvatar", () => {
 
     await uploadAvatar(req, res);
 
+    expect(prisma.profile.findUnique).toHaveBeenCalledWith({
+      where: { userId: "uid-1" },
+      select: { avatarPath: true },
+    });
     expect(from).toHaveBeenCalled();
     expect(upload).toHaveBeenCalled();
+    expect(remove).toHaveBeenCalledWith(["uid-1/profile-old.png"]);
     expect(prisma.profile.update).toHaveBeenCalledWith({
       where: { userId: "uid-1" },
-      data: { photoURL: "https://cdn.test/avatar.png" },
+      data: {
+        photoURL: "https://cdn.test/avatar.png",
+        avatarPath: expect.stringContaining("uid-1/profile-"),
+      },
     });
     expect(res.json).toHaveBeenCalledWith({
       success: true,
@@ -124,8 +138,46 @@ describe("uploadAvatar", () => {
         profile: {
           userId: "uid-1",
           photoURL: "https://cdn.test/avatar.png",
+          avatarPath: "uid-1/profile-new.png",
         },
       },
     });
+  });
+
+  test("continues when old avatar cleanup fails", async () => {
+    const remove = jest.fn().mockResolvedValue({ error: { message: "fail" } });
+    const upload = jest.fn().mockResolvedValue({ error: null });
+    const getPublicUrl = jest
+      .fn()
+      .mockReturnValue({ data: { publicUrl: "https://cdn.test/avatar-2.png" } });
+    const from = jest.fn().mockReturnValue({ upload, getPublicUrl, remove });
+
+    createSupabaseClient.mockReturnValue({
+      storage: { from },
+    });
+    prisma.profile.findUnique.mockResolvedValue({
+      avatarPath: "uid-1/profile-old.png",
+    });
+    prisma.profile.update.mockResolvedValue({
+      userId: "uid-1",
+      photoURL: "https://cdn.test/avatar-2.png",
+      avatarPath: "uid-1/profile-new.png",
+    });
+
+    const req = {
+      user: { uid: "uid-1" },
+      file: {
+        originalname: "avatar2.png",
+        mimetype: "image/png",
+        size: 1024,
+        buffer: Buffer.from("png"),
+      },
+    };
+    const res = createMockRes();
+
+    await uploadAvatar(req, res);
+
+    expect(prisma.profile.update).toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalled();
   });
 });

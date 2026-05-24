@@ -49,6 +49,11 @@ const uploadAvatar = async (req, res, next) => {
     }
 
     const supabase = createSupabaseClient();
+    const currentProfile = await prisma.profile.findUnique({
+      where: { userId },
+      select: { avatarPath: true },
+    });
+
     const extension = getExtension(file);
     const filePath = `${userId}/profile-${Date.now()}${extension}`;
 
@@ -63,12 +68,23 @@ const uploadAvatar = async (req, res, next) => {
       throw uploadError;
     }
 
+    if (currentProfile?.avatarPath) {
+      const { error: removeError } = await supabase.storage
+        .from(AVATAR_BUCKET)
+        .remove([currentProfile.avatarPath]);
+
+      // Keep request successful if cleanup fails, but log for observability.
+      if (removeError) {
+        console.error("Failed to remove old avatar:", removeError.message);
+      }
+    }
+
     const { data } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(filePath);
     const photoURL = data.publicUrl;
 
     const profile = await prisma.profile.update({
       where: { userId },
-      data: { photoURL },
+      data: { photoURL, avatarPath: filePath },
     });
 
     return res.json({

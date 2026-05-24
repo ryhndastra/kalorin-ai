@@ -17,6 +17,7 @@ model Profile {
   email          String   @unique
   fullName       String?
   photoURL       String?
+  avatarPath     String?
   birthdate      DateTime?
   gender         String?
   activityLevel  String?  @default("sedentary")
