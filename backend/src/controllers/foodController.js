@@ -1,18 +1,19 @@
 const { searchExternalFood } = require("../services/externalApiService");
 const prisma = require("../config/prisma");
+const isDev = process.env.NODE_ENV !== "production";
 
-const getAllFoods = async (req, res) => {
+const getAllFoods = async (req, res, next) => {
   try {
     const foods = await prisma.food.findMany({
       take: 50, // ambil 50 data, takut berat
     });
     res.json({ success: true, data: foods });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const getFoodById = async (req, res) => {
+const getFoodById = async (req, res, next) => {
   try {
     const foodId = Number(req.params.id);
 
@@ -26,15 +27,18 @@ const getFoodById = async (req, res) => {
     const food = await prisma.food.findUnique({
       where: { id: foodId },
     });
-    if (!food)
-      return res.status(404).json({ message: "Makanan tidak ditemukan" });
+    if (!food) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Makanan tidak ditemukan" });
+    }
     res.json({ success: true, data: food });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const searchFood = async (req, res) => {
+const searchFood = async (req, res, next) => {
   try {
     const { keyword } = req.query;
 
@@ -58,9 +62,11 @@ const searchFood = async (req, res) => {
     // Kalau di lokal datanya kosong atau kurang dari 3, panggil API Luar
     let externalFoods = [];
     if (localFoods.length < 3) {
-      console.log(
-        `Pencarian lokal untuk "${keyword}" sedikit, memanggil API eksternal...`,
-      );
+      if (isDev) {
+        console.info(
+          `Pencarian lokal untuk "${keyword}" sedikit, memanggil API eksternal...`,
+        );
+      }
       externalFoods = await searchExternalFood(keyword);
     }
 
@@ -72,8 +78,7 @@ const searchFood = async (req, res) => {
       data: finalResults,
     });
   } catch (error) {
-    console.error("❌ Search Food Error:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return next(error);
   }
 };
 

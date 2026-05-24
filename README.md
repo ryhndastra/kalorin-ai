@@ -77,6 +77,10 @@ AI_URL=http://localhost:8000
 AI_TIMEOUT=15000
 REDIS_URL=redis://localhost:6379
 FIREBASE_SERVICE_ACCOUNT_BASE64=base64_encoded_firebase_service_account_json
+CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+SUPABASE_URL=https://PROJECT_ID.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+SUPABASE_AVATAR_BUCKET=avatars
 
 # Optional external recipe APIs
 SPOONACULAR_API_KEY=
@@ -85,6 +89,8 @@ EDAMAM_APP_KEY=
 ```
 
 `FIREBASE_SERVICE_ACCOUNT_BASE64` is used by the backend to verify Firebase ID tokens. Download a Firebase Admin service account JSON from Firebase Console, encode the whole JSON file to base64, then put the encoded value here. Alternatively, set `GOOGLE_APPLICATION_CREDENTIALS` to the service account JSON path so Firebase Admin can use Application Default Credentials.
+`CORS_ORIGINS` is a comma-separated allowlist for frontend origins that can call this API.
+`SUPABASE_SERVICE_ROLE_KEY` is server-only and must never be exposed to the frontend.
 
 ### `ai_service/.env`
 

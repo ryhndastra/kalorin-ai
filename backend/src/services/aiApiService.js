@@ -1,21 +1,33 @@
 const axios = require("axios");
 const redis = require("redis");
 const { AI_URL, AI_TIMEOUT, CACHE_TTL } = require("../config/aiConfig");
+const isTestEnv = process.env.NODE_ENV === "test";
+const isDevEnv = process.env.NODE_ENV !== "production";
+const debugLog = (...args) => {
+  if (isDevEnv && !isTestEnv) {
+    console.debug(...args);
+  }
+};
 
 // REDIS CLIENT
 const redisClient = redis.createClient({
   url: process.env.REDIS_URL || "redis://localhost:6379",
 });
 
-redisClient.on("error", (err) => console.error("❌ Redis Error:", err));
-redisClient.on("connect", () => console.log("✅ Redis connected"));
+if (!isTestEnv) {
+  redisClient.on("error", (err) => console.error("❌ Redis Error:", err));
+  redisClient.on("connect", () => debugLog("✅ Redis connected"));
+}
 
 (async () => {
+  if (isTestEnv) return;
+
   try {
     if (!redisClient.isOpen) {
       await redisClient.connect();
     }
   } catch (error) {
+    if (isTestEnv) return;
     console.error("❌ Redis Connect Error:", error.message);
   }
 })();
@@ -66,7 +78,7 @@ const circuitBreaker = {
       this.state = "OPEN";
       const delay = retryAfterMs ?? this.retryDelay;
       this.retryAfter = Date.now() + delay;
-      console.warn(`🔴 Circuit OPEN — retry in ${Math.ceil(delay / 1000)}s`);
+      debugLog(`🔴 Circuit OPEN — retry in ${Math.ceil(delay / 1000)}s`);
     }
   },
 
@@ -74,7 +86,7 @@ const circuitBreaker = {
     this.failureCount = 0;
     this.state = "CLOSED";
     this.retryAfter = null;
-    console.log("🟢 Circuit CLOSED — AI service recovered");
+    debugLog("🟢 Circuit CLOSED — AI service recovered");
   },
 
   canRequest() {
@@ -82,11 +94,11 @@ const circuitBreaker = {
     if (this.state === "OPEN") {
       if (Date.now() >= this.retryAfter) {
         this.state = "HALF_OPEN";
-        console.log("🟡 Circuit HALF_OPEN — trying one request");
+        debugLog("🟡 Circuit HALF_OPEN — trying one request");
         return true;
       }
       const waitSec = Math.ceil((this.retryAfter - Date.now()) / 1000);
-      console.warn(`🔴 Circuit OPEN — blocked, retry in ${waitSec}s`);
+      debugLog(`🔴 Circuit OPEN — blocked, retry in ${waitSec}s`);
       return false;
     }
     if (this.state === "HALF_OPEN") return true;
@@ -138,7 +150,7 @@ const postWithRetry = async (endpoint, payload, retries = 2) => {
 
         if (attempt < retries) {
           const backoff = retryMs ?? Math.pow(2, attempt) * 5000; // 5s, 10s
-          console.warn(
+          debugLog(
             `⏳ Rate limited, waiting ${Math.ceil(backoff / 1000)}s before retry (attempt ${attempt + 1}/${retries})`,
           );
           await sleep(backoff);
@@ -167,7 +179,7 @@ const deduplicatedPost = async (endpoint, payload) => {
   const dedupKey = `${endpoint}:${JSON.stringify(payload)}`;
 
   if (inFlightRequests.has(dedupKey)) {
-    console.log("♻️  Dedup: reusing in-flight request");
+    debugLog("♻️  Dedup: reusing in-flight request");
     return inFlightRequests.get(dedupKey);
   }
 
@@ -186,7 +198,7 @@ const requestRecommendation = async (payload) => {
 
   const cached = await getRedisCache(cacheKey);
   if (cached) {
-    console.log("⚡ Redis cache hit");
+    debugLog("⚡ Redis cache hit");
     return cached;
   }
 
@@ -204,7 +216,7 @@ const requestRecommendationWithExplanation = async (payload) => {
 
   const cached = await getRedisCache(cacheKey);
   if (cached) {
-    console.log("⚡ Redis explain cache hit");
+    debugLog("⚡ Redis explain cache hit");
     return cached;
   }
 

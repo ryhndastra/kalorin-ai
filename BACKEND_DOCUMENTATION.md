@@ -73,10 +73,9 @@ Mengambil detail satu food berdasarkan `id`.
 
 ### Profile
 
-Ada dua jalur route yang saat ini menuju function yang sama:
+Endpoint profile utama:
 
 - `POST /api/profile`
-- `POST /api/user/profile`
 
 Body:
 
@@ -95,8 +94,6 @@ Body:
 ```
 
 `GET /api/profile/:userId`
-
-`GET /api/user/profile/:userId`
 
 Mengambil profile, BMI, rentang berat ideal, dan statistik makan hari ini.
 
@@ -219,7 +216,7 @@ Berisi script dan dependency backend.
 
 - `npm run dev`: menjalankan `nodemon src/server.js`.
 - `npm start`: menjalankan `node src/server.js`.
-- `npm test`: belum ada test, masih placeholder.
+- `npm test`: menjalankan suite unit test backend (Jest).
 - Prisma seed: `node prisma/seed.js`.
 
 ### `backend/package-lock.json`
@@ -235,13 +232,10 @@ Entrypoint Express.
 - Register route utama:
   - food endpoint.
   - profile endpoint langsung.
-  - `/api/user`.
   - `/api/track`.
   - `/api/insights`.
   - `/api/ai/*`.
 - Menjalankan server di `process.env.PORT || 5000`.
-
-Catatan: ada duplikasi route profile langsung dan route profile melalui `/api/user`.
 
 ### `backend/src/controllers/foodController.js`
 
@@ -289,15 +283,6 @@ Controller untuk insight dashboard.
 - `getNutritionPatterns(req, res)`: menghasilkan pattern nutrisi lokal.
 - `getFoodPatterns(req, res)`: menghasilkan pattern makanan lokal.
 - `getStreaks(req, res)`: menghitung streak tracking dan protein.
-
-### `backend/src/routes/userRoutes.js`
-
-Route profile alternatif.
-
-- `POST /profile`: ke `createOrUpdateProfile`.
-- `GET /profile/:userId`: ke `getProfile`.
-
-Mounted di `server.js` sebagai `/api/user`.
 
 ### `backend/src/routes/trackRoutes.js`
 
@@ -688,7 +673,6 @@ Pertanyaan:
 Saat ini profile bisa diakses lewat:
 
 - `/api/profile`
-- `/api/user/profile`
 
 Risiko: API surface jadi membingungkan dan dokumentasi frontend bisa tidak konsisten.
 

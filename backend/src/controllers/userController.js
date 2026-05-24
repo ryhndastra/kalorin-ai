@@ -2,6 +2,7 @@ const prisma = require("../config/prisma");
 const { calculateUserStatus } = require("../utils/bmiUtils");
 const {
   ACTIVITY_FACTORS,
+  calculateAge,
   calculateDailyNeeds,
   normalizeActivityLevel,
   normalizeGender,
@@ -11,8 +12,14 @@ const {
   isBlank,
   hasInvalidNumber,
 } = require("../utils/requestValidation");
+const toBoolean = (value, fallback = false) => {
+  if (typeof value === "boolean") return value;
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return fallback;
+};
 
-const createOrUpdateProfile = async (req, res) => {
+const createOrUpdateProfile = async (req, res, next) => {
   try {
     const {
       name,
@@ -20,6 +27,9 @@ const createOrUpdateProfile = async (req, res) => {
       height,
       gender,
       activityLevel,
+      isPregnant,
+      isBreastfeeding,
+      hasMedicalCondition,
       goal,
       birthdate,
       dailyCalories,
@@ -67,6 +77,18 @@ const createOrUpdateProfile = async (req, res) => {
     const normalizedActivityLevel = activityLevel
       ? normalizeActivityLevel(activityLevel)
       : existingProfile?.activityLevel || "sedentary";
+    const normalizedIsPregnant = toBoolean(
+      isPregnant,
+      existingProfile?.isPregnant || false,
+    );
+    const normalizedIsBreastfeeding = toBoolean(
+      isBreastfeeding,
+      existingProfile?.isBreastfeeding || false,
+    );
+    const normalizedHasMedicalCondition = toBoolean(
+      hasMedicalCondition,
+      existingProfile?.hasMedicalCondition || false,
+    );
 
     if (gender && !normalizedGender) {
       return res.status(400).json({
@@ -104,10 +126,23 @@ const createOrUpdateProfile = async (req, res) => {
       (normalizedGender && normalizedGender !== existingProfile?.gender) ||
       (normalizedActivityLevel &&
         normalizedActivityLevel !== existingProfile?.activityLevel) ||
+      normalizedIsPregnant !== Boolean(existingProfile?.isPregnant) ||
+      normalizedIsBreastfeeding !== Boolean(existingProfile?.isBreastfeeding) ||
+      normalizedHasMedicalCondition !==
+        Boolean(existingProfile?.hasMedicalCondition) ||
       (goal && goal !== existingProfile?.goal);
 
     const isManualInput =
       dailyCalories > 0 && dailyCalories !== existingProfile?.dailyCalories;
+
+    const latestBirthdate = birthdate || existingProfile?.birthdate;
+    const latestAge = latestBirthdate ? calculateAge(latestBirthdate) : 0;
+    const needsManualTargets =
+      latestAge > 0 &&
+      (latestAge < 18 ||
+        normalizedIsPregnant ||
+        normalizedIsBreastfeeding ||
+        normalizedHasMedicalCondition);
 
     if ((!existingProfile || isPhysicalDataChanged) && !isManualInput) {
       // hitung ulang pake data terbaru (pake data lama sebagai fallback)
@@ -118,6 +153,11 @@ const createOrUpdateProfile = async (req, res) => {
         goal || existingProfile?.goal || "Stay Healthy",
         normalizedGender || existingProfile?.gender,
         normalizedActivityLevel || existingProfile?.activityLevel,
+        {
+          isPregnant: normalizedIsPregnant,
+          isBreastfeeding: normalizedIsBreastfeeding,
+          hasMedicalCondition: normalizedHasMedicalCondition,
+        },
       );
       finalCalories = autoNeeds.calories;
       finalProtein = autoNeeds.protein;
@@ -133,6 +173,9 @@ const createOrUpdateProfile = async (req, res) => {
         ...(normalizedActivityLevel && {
           activityLevel: normalizedActivityLevel,
         }),
+        isPregnant: normalizedIsPregnant,
+        isBreastfeeding: normalizedIsBreastfeeding,
+        hasMedicalCondition: normalizedHasMedicalCondition,
         ...(goal && { goal: goal }),
         ...(userStatus && { userStatus: userStatus }),
         ...(birthdate && { birthdate: new Date(birthdate) }),
@@ -140,6 +183,8 @@ const createOrUpdateProfile = async (req, res) => {
         dailyCalories:
           dailyCalories > 0
             ? parseInt(dailyCalories) // prioritas Input Manual
+            : needsManualTargets
+              ? existingProfile?.dailyCalories || 2000
             : finalCalories > 0
               ? parseInt(finalCalories) // hasil Hitung Otomatis (Jika ada perubahan BB/TB/Goal)
               : existingProfile?.dailyCalories || 2000, // pake data lama di DB (Fallback terakhir 2000)
@@ -147,6 +192,8 @@ const createOrUpdateProfile = async (req, res) => {
         proteinTarget:
           proteinTarget > 0
             ? parseInt(proteinTarget)
+            : needsManualTargets
+              ? existingProfile?.proteinTarget || 100
             : finalProtein > 0
               ? parseInt(finalProtein)
               : existingProfile?.proteinTarget || 100,
@@ -158,6 +205,9 @@ const createOrUpdateProfile = async (req, res) => {
         weight: parseFloat(weight) || 0,
         height: parseFloat(height) || 0,
         gender: normalizedGender,
+        isPregnant: normalizedIsPregnant,
+        isBreastfeeding: normalizedIsBreastfeeding,
+        hasMedicalCondition: normalizedHasMedicalCondition,
         activityLevel: normalizedActivityLevel,
         goal: goal || "Stay Healthy",
         userStatus: userStatus || "Normal",
@@ -169,12 +219,11 @@ const createOrUpdateProfile = async (req, res) => {
 
     res.json({ success: true, data: profile });
   } catch (error) {
-    console.error("Error in createOrUpdateProfile:", error);
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const getProfile = async (req, res) => {
+const getProfile = async (req, res, next) => {
   try {
     const userId = req.user?.uid;
 
@@ -263,8 +312,7 @@ const getProfile = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error in getProfile:", error);
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 

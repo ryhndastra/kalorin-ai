@@ -20,7 +20,7 @@ const {
 const { getStreakService } = require("../services/insights/streakService");
 
 // GET WEEKLY SUMMARY
-const getWeeklySummary = async (req, res) => {
+const getWeeklySummary = async (req, res, next) => {
   try {
     const userId = req.user?.uid;
 
@@ -40,16 +40,12 @@ const getWeeklySummary = async (req, res) => {
       data: summary,
     });
   } catch (error) {
-    console.error("❌ Error getWeeklySummary:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    next(error);
   }
 };
 
 // GET WEEKLY TRENDS
-const getWeeklyTrends = async (req, res) => {
+const getWeeklyTrends = async (req, res, next) => {
   try {
     const userId = req.user?.uid;
 
@@ -68,16 +64,12 @@ const getWeeklyTrends = async (req, res) => {
       data: trends,
     });
   } catch (error) {
-    console.error("❌ Error getWeeklyTrends:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    next(error);
   }
 };
 
 // GET BEHAVIORAL INSIGHTS
-const getBehavioralInsights = async (req, res) => {
+const getBehavioralInsights = async (req, res, next) => {
   try {
     const userId = req.user?.uid;
 
@@ -97,16 +89,12 @@ const getBehavioralInsights = async (req, res) => {
       source: result.source,
     });
   } catch (error) {
-    console.error("❌ Error getBehavioralInsights:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    next(error);
   }
 };
 
 // GET WEEKLY COMPARISON
-const getWeeklyComparison = async (req, res) => {
+const getWeeklyComparison = async (req, res, next) => {
   try {
     const userId = req.user?.uid;
     if (!userId) {
@@ -123,16 +111,12 @@ const getWeeklyComparison = async (req, res) => {
       data: comparison,
     });
   } catch (error) {
-    console.error("❌ Error getWeeklyComparison:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    next(error);
   }
 };
 
 // GET WEEKLY SCORE
-const getWeeklyScore = async (req, res) => {
+const getWeeklyScore = async (req, res, next) => {
   try {
     const userId = req.user?.uid;
 
@@ -151,17 +135,12 @@ const getWeeklyScore = async (req, res) => {
       data: score,
     });
   } catch (error) {
-    console.error("❌ Error getWeeklyScore:", error);
-
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    next(error);
   }
 };
 
 // GET NUTRITION PATTERNS
-const getNutritionPatterns = async (req, res) => {
+const getNutritionPatterns = async (req, res, next) => {
   try {
     const userId = req.user?.uid;
 
@@ -179,16 +158,12 @@ const getNutritionPatterns = async (req, res) => {
       data: patterns,
     });
   } catch (error) {
-    console.error("❌ Error getNutritionPatterns:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    next(error);
   }
 };
 
 // GET FOOD PATTERNS
-const getFoodPatterns = async (req, res) => {
+const getFoodPatterns = async (req, res, next) => {
   try {
     const userId = req.user?.uid;
 
@@ -207,16 +182,12 @@ const getFoodPatterns = async (req, res) => {
       data: patterns,
     });
   } catch (error) {
-    console.error("❌ Error getFoodPatterns:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    next(error);
   }
 };
 
 // GET STREAKS
-const getStreaks = async (req, res) => {
+const getStreaks = async (req, res, next) => {
   try {
     const userId = req.user?.uid;
 
@@ -235,11 +206,7 @@ const getStreaks = async (req, res) => {
       data: streaks,
     });
   } catch (error) {
-    console.error("❌ Error getStreaks:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    next(error);
   }
 };
 

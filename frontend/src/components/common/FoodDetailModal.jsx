@@ -90,7 +90,6 @@ const FoodDetailModal = ({ food, isOpen, onClose }) => {
     // CHECK CACHE
     const cachedData = getCachedData(cacheKey);
     if (cachedData) {
-      console.log("⚡ Using cached AI explanation");
       setAiData(cachedData);
       typeText(cachedData.explanation);
       return;
@@ -101,7 +100,6 @@ const FoodDetailModal = ({ food, isOpen, onClose }) => {
       setLoading(true);
       try {
         const res = await getFoodRecommendation(user.id, parseInt(food.id));
-        console.log("AI RESPONSE:", res);
         // ambil explanation secara aman
         const explanation = res?.recommendation?.explanation;
         // validasi explanation

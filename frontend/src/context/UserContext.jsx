@@ -42,8 +42,6 @@ export const UserProvider = ({ children }) => {
 
         setUserData(actualProfileData);
         lastFetchedId.current = userId; // tandai ID ini sudah sukses di fetch
-
-        console.log("🔥 User Data Synced:", actualProfileData);
       } catch (err) {
         console.error("❌ Gagal sinkronisasi data user:", err);
         // jika gagal, biarkan lastFetchedId null agar bisa mencoba lagi nanti

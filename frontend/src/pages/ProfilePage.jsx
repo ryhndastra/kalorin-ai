@@ -4,6 +4,7 @@ import { useUser } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../config/firebase";
 import { signOut, updateProfile as updateFirebaseProfile } from "firebase/auth";
+import toast from "react-hot-toast";
 import Navbar from "../components/Navbar/Navbar";
 import ProfileHero from "../components/Profile/ProfileHero";
 import StatsCard from "../components/Profile/StatsCard";
@@ -38,6 +39,9 @@ const ProfilePage = () => {
       height: userData?.height || 0,
       gender: userData?.gender || "",
       activityLevel: userData?.activityLevel || "sedentary",
+      isPregnant: Boolean(userData?.isPregnant),
+      isBreastfeeding: Boolean(userData?.isBreastfeeding),
+      hasMedicalCondition: Boolean(userData?.hasMedicalCondition),
       goal: userData?.goal || "Stay Healthy",
       dailyCalories: userData?.dailyCalories || 2000,
       proteinTarget: userData?.proteinTarget || 100,
@@ -59,7 +63,7 @@ const ProfilePage = () => {
       const cleanName = tempData.fullName?.trim();
 
       if (modalType === "name" && !cleanName) {
-        alert("Nama tidak boleh kosong!");
+        toast.error("Nama tidak boleh kosong!");
         return;
       }
 
@@ -83,6 +87,9 @@ const ProfilePage = () => {
               birthdate: tempData.birthdate,
               gender: tempData.gender,
               activityLevel: tempData.activityLevel,
+              isPregnant: tempData.isPregnant,
+              isBreastfeeding: tempData.isBreastfeeding,
+              hasMedicalCondition: tempData.hasMedicalCondition,
               goal: tempData.goal,
               weight: parseFloat(tempData.weight) || 0,
               height: parseFloat(tempData.height) || 0,
@@ -90,21 +97,18 @@ const ProfilePage = () => {
               proteinTarget: 0,
             };
 
-      console.log("🚀 Mengirim data (Triggering Auto-Calculate):", payload);
-
       const response = await updateUserProfile(payload);
 
       if (response.success) {
-        console.log("✅ Berhasil! Data baru dari backend:", response.data);
-
         // ambil data terbaru hasil hitungan backend ke dalam Context
         await fetchProfile(currentUserId, true);
 
         setModalType(null);
+        toast.success("Profil berhasil diperbarui.");
       }
     } catch (error) {
       console.error("❌ Error Detail:", error.response?.data || error.message);
-      alert("Gagal simpan data profile!");
+      toast.error(error.response?.data?.message || "Gagal simpan data profile!");
     } finally {
       setIsLoading(false);
     }
@@ -256,6 +260,44 @@ const ProfilePage = () => {
                   {getActivityLevelDescription(tempData.activityLevel)}
                 </p>
               </div>
+            </div>
+            <div className="space-y-2 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+              <label className="flex items-center gap-3 text-sm font-semibold text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={Boolean(tempData.isPregnant)}
+                  onChange={(e) =>
+                    setTempData({ ...tempData, isPregnant: e.target.checked })
+                  }
+                />
+                Pregnant
+              </label>
+              <label className="flex items-center gap-3 text-sm font-semibold text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={Boolean(tempData.isBreastfeeding)}
+                  onChange={(e) =>
+                    setTempData({
+                      ...tempData,
+                      isBreastfeeding: e.target.checked,
+                    })
+                  }
+                />
+                Breastfeeding
+              </label>
+              <label className="flex items-center gap-3 text-sm font-semibold text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={Boolean(tempData.hasMedicalCondition)}
+                  onChange={(e) =>
+                    setTempData({
+                      ...tempData,
+                      hasMedicalCondition: e.target.checked,
+                    })
+                  }
+                />
+                Have medical condition
+              </label>
             </div>
             <div className="flex gap-4">
               <div className="flex-1">
