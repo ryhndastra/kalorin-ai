@@ -13,11 +13,22 @@ import { useUser } from "./context/UserContext";
 import MealsPage from "./pages/MealsPage";
 import TrackPage from "./pages/TrackPage";
 import InsightsPage from "./pages/InsightsPage";
+import RequiredProfileModal from "./components/Profile/RequiredProfileModal";
+
+const hasCompleteBodyStats = (profile) => {
+  if (!profile) return false;
+  return Boolean(profile.birthdate && profile.weight > 0 && profile.height > 0);
+};
 
 export default function App() {
   const { user } = useAuth();
-  const { fetchProfile, userData, loading } = useUser();
+  const { fetchProfile, userData, loading, isInitialized } = useUser();
   const isFetching = useRef(false);
+  const shouldShowRequiredProfileModal =
+    Boolean(user?.id) &&
+    isInitialized &&
+    !loading &&
+    !hasCompleteBodyStats(userData);
 
   useEffect(() => {
     // kalau ada user, belum ada data, lagi ga loading, dan belum pernah fetch
@@ -43,6 +54,8 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
         </Route>
       </Routes>
+
+      {shouldShowRequiredProfileModal && <RequiredProfileModal />}
     </>
   );
 }
