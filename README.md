@@ -1,11 +1,13 @@
-# KaloriN AI
+<p align="center">
+  <img src="frontend/public/images/logo/kalorinLogo.png" alt="KaloriN AI" width="280" />
+</p>
 
 KaloriN AI is a nutrition tracking web app with AI-powered food scanning, meal logging, personalized recommendations, BMI-based calorie targets, and weekly nutrition insights.
 
 The project is split into three services:
 
 - `frontend/` - React + Vite client with Firebase Authentication.
-- `backend/` - Express API with Prisma and PostgreSQL.
+- `backend/` - Express API with Prisma and Supabase PostgreSQL.
 - `ai_service/` - FastAPI microservice for food classification, recommendation scoring, and AI explanations.
 
 ## Features
@@ -26,7 +28,7 @@ The project is split into three services:
 | --- | --- |
 | Frontend | React, Vite, Tailwind CSS, React Router, Firebase Auth |
 | Backend | Node.js, Express, Prisma |
-| Database | PostgreSQL |
+| Database | Supabase PostgreSQL |
 | AI Service | FastAPI, TensorFlow/Keras, scikit-learn, Gemini |
 | Cache | Redis |
 
@@ -48,7 +50,7 @@ Install these before running the full app:
 
 - Node.js and npm
 - Python 3.10+ recommended
-- PostgreSQL
+- Supabase PostgreSQL project
 - Redis, optional but recommended for AI caching
 - Firebase project with Authentication enabled
 - Google Gemini API key for AI explanations and behavioral insights
@@ -69,8 +71,8 @@ Firebase configuration is currently defined in `frontend/src/config/firebase.js`
 
 ```env
 PORT=5000
-DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/kalorinai
-DIRECT_URL=postgresql://USER:PASSWORD@localhost:5432/kalorinai
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/postgres
+DIRECT_URL=postgresql://USER:PASSWORD@HOST:PORT/postgres
 AI_URL=http://localhost:8000
 AI_TIMEOUT=15000
 REDIS_URL=redis://localhost:6379
