@@ -11,7 +11,8 @@ const {
 // QUICK INSIGHT
 const getQuickInsight = async (req, res) => {
   try {
-    const { userId, macroContext } = req.body;
+    const { macroContext } = req.body;
+    const userId = req.user?.uid;
 
     if (isBlank(userId)) {
       return res.status(400).json({
@@ -39,7 +40,7 @@ const getQuickInsight = async (req, res) => {
 // FOOD LIST
 const getRecommendedFoodList = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.user?.uid;
 
     if (isBlank(userId)) {
       return res.status(400).json({
@@ -67,7 +68,8 @@ const getRecommendedFoodList = async (req, res) => {
 // FOOD DETAIL
 const getFoodRecommendation = async (req, res) => {
   try {
-    const { userId, foodId } = req.body;
+    const { foodId } = req.body;
+    const userId = req.user?.uid;
 
     if (isBlank(userId) || !isPositiveNumber(foodId)) {
       return res.status(400).json({

@@ -76,12 +76,15 @@ DIRECT_URL=postgresql://USER:PASSWORD@HOST:PORT/postgres
 AI_URL=http://localhost:8000
 AI_TIMEOUT=15000
 REDIS_URL=redis://localhost:6379
+FIREBASE_SERVICE_ACCOUNT_BASE64=base64_encoded_firebase_service_account_json
 
 # Optional external recipe APIs
 SPOONACULAR_API_KEY=
 EDAMAM_APP_ID=
 EDAMAM_APP_KEY=
 ```
+
+`FIREBASE_SERVICE_ACCOUNT_BASE64` is used by the backend to verify Firebase ID tokens. Download a Firebase Admin service account JSON from Firebase Console, encode the whole JSON file to base64, then put the encoded value here. Alternatively, set `GOOGLE_APPLICATION_CREDENTIALS` to the service account JSON path so Firebase Admin can use Application Default Credentials.
 
 ### `ai_service/.env`
 

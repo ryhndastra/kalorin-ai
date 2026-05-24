@@ -22,7 +22,7 @@ const { getStreakService } = require("../services/insights/streakService");
 // GET WEEKLY SUMMARY
 const getWeeklySummary = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const userId = req.user?.uid;
 
     // VALIDATION
     if (!userId) {
@@ -51,7 +51,7 @@ const getWeeklySummary = async (req, res) => {
 // GET WEEKLY TRENDS
 const getWeeklyTrends = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const userId = req.user?.uid;
 
     // VALIDATION
     if (!userId) {
@@ -79,7 +79,7 @@ const getWeeklyTrends = async (req, res) => {
 // GET BEHAVIORAL INSIGHTS
 const getBehavioralInsights = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const userId = req.user?.uid;
 
     // VALIDATION
     if (!userId) {
@@ -108,7 +108,7 @@ const getBehavioralInsights = async (req, res) => {
 // GET WEEKLY COMPARISON
 const getWeeklyComparison = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const userId = req.user?.uid;
     if (!userId) {
       return res.status(400).json({
         success: false,
@@ -134,7 +134,7 @@ const getWeeklyComparison = async (req, res) => {
 // GET WEEKLY SCORE
 const getWeeklyScore = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const userId = req.user?.uid;
 
     // VALIDATION
     if (!userId) {
@@ -163,7 +163,7 @@ const getWeeklyScore = async (req, res) => {
 // GET NUTRITION PATTERNS
 const getNutritionPatterns = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const userId = req.user?.uid;
 
     if (!userId) {
       return res.status(400).json({
@@ -190,7 +190,7 @@ const getNutritionPatterns = async (req, res) => {
 // GET FOOD PATTERNS
 const getFoodPatterns = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const userId = req.user?.uid;
 
     // VALIDATION
     if (!userId) {
@@ -218,7 +218,7 @@ const getFoodPatterns = async (req, res) => {
 // GET STREAKS
 const getStreaks = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const userId = req.user?.uid;
 
     // VALIDATION
     if (!userId) {

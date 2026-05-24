@@ -10,9 +10,7 @@ const {
 const createOrUpdateProfile = async (req, res) => {
   try {
     const {
-      userId,
       name,
-      email,
       weight,
       height,
       goal,
@@ -20,6 +18,8 @@ const createOrUpdateProfile = async (req, res) => {
       dailyCalories,
       proteinTarget,
     } = req.body;
+    const userId = req.user?.uid;
+    const email = req.user?.email || req.body.email;
 
     if (isBlank(userId) || isBlank(email)) {
       return res.status(400).json({
@@ -134,7 +134,7 @@ const createOrUpdateProfile = async (req, res) => {
 
 const getProfile = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user?.uid;
 
     if (isBlank(userId)) {
       return res.status(400).json({

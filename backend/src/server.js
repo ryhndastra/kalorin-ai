@@ -1,6 +1,7 @@
 require("dotenv").config({ path: "./.env" });
 const express = require("express");
 const cors = require("cors");
+const { authenticateFirebaseToken } = require("./middleware/auth");
 
 // import Controllers
 const { getAllFoods, getFoodById, searchFood } = require("./controllers/foodController");
@@ -38,8 +39,8 @@ app.get("/api/foods/search", searchFood);
 app.get("/api/foods/:id", getFoodById);
 
 // Endpoint User Profile (Database)
-app.post("/api/profile", createOrUpdateProfile);
-app.get("/api/profile/:userId", getProfile);
+app.post("/api/profile", authenticateFirebaseToken, createOrUpdateProfile);
+app.get("/api/profile/:userId", authenticateFirebaseToken, getProfile);
 app.use("/api/user", user_routes);
 app.use("/api/track", track_routes);
 app.use("/api/insights", insightRoutes);
@@ -51,19 +52,19 @@ app.use("/api/scanner", scannerRoutes);
  * endpoint buat quick insight harian (motivasi, tips, dll) di homepage
  * Body: { userId, macroContext }
  */
-app.post("/api/ai/recommend", getQuickInsight);
+app.post("/api/ai/recommend", authenticateFirebaseToken, getQuickInsight);
 
 /**
  * endpoint buat list makanan "recommended for You" di dashboard
  * Body: { userId }
  */
-app.post("/api/ai/food-list", getRecommendedFoodList);
+app.post("/api/ai/food-list", authenticateFirebaseToken, getRecommendedFoodList);
 
 /**
  * endpoint buat review makanan spesifik (halaman detail)
  * Body: { userId, foodId }
  */
-app.post("/api/ai/food-detail", getFoodRecommendation);
+app.post("/api/ai/food-detail", authenticateFirebaseToken, getFoodRecommendation);
 
 // Start Server
 app.listen(PORT, () => {
