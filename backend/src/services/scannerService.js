@@ -16,7 +16,7 @@ const scanFoodImage = async (fileBuffer, fileName) => {
 
     // SEND TO AI SERVICE
     const aiResponse = await axios.post(
-      "http://127.0.0.1:8000/predict-food",
+      `${process.env.AI_URL}/predict-food`,
       formData,
       {
         headers: formData.getHeaders(),

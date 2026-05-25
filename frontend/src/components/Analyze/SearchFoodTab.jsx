@@ -49,11 +49,17 @@ const SearchFoodTab = () => {
       }
 
       setIsLoading(true);
+
       try {
-        // NEMBAK KE API HYBRID 
         const response = await axios.get(
-          `http://127.0.0.1:5000/api/foods/search?keyword=${debouncedSearch}`
+          `${import.meta.env.VITE_API_URL}/api/foods/search`,
+          {
+            params: {
+              keyword: debouncedSearch,
+            },
+          },
         );
+
         setSearchResults(response.data.data || []);
       } catch (error) {
         console.error("❌ Search API failed:", error);
@@ -70,7 +76,7 @@ const SearchFoodTab = () => {
   const filteredFoods = useMemo(() => {
     // Kalau lagi ngetik pencarian, pakai data dari backend
     if (debouncedSearch.trim()) {
-      return searchResults; 
+      return searchResults;
     }
 
     // Kalau kolom search kosong, pakai data awal + filter kategori
