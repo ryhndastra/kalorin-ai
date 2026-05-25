@@ -72,10 +72,13 @@ const AnalyzePage = () => {
       // =========================
       // API CALL
       // =========================
-      const response = await fetch(import.meta.env.VITE_API_URL, {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/scanner/scan-food`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
 
       const data = await response.json();
 
