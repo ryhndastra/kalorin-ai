@@ -11,9 +11,9 @@
   "categories": ["food", "health", "fitness", "productivity"],
   "icons": [
     {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/favicon.png",
+      "sizes": "601x415",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {

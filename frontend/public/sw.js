@@ -2,7 +2,7 @@ const CACHE_NAME = "kalorin-ai-v1";
 const APP_SHELL = [
   "/",
   "/index.html",
-  "/favicon.svg",
+  "/favicon.png",
   "/icons.svg",
   "/manifest.webmanifest",
   "/pwa-192.png",
