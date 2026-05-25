@@ -1,17 +1,15 @@
 const express = require("express");
 const cors = require("cors");
 const { authenticateFirebaseToken } = require("./middleware/auth");
-const {
-  parseCorsOrigins,
-  validateCriticalEnv,
-} = require("./config/env");
-const {
-  errorHandler,
-  notFoundHandler,
-} = require("./middleware/errorHandler");
+const { parseCorsOrigins, validateCriticalEnv } = require("./config/env");
+const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
 
 // import Controllers
-const { getAllFoods, getFoodById, searchFood } = require("./controllers/foodController");
+const {
+  getAllFoods,
+  getFoodById,
+  searchFood,
+} = require("./controllers/foodController");
 const {
   createOrUpdateProfile,
   getProfile,
@@ -36,14 +34,7 @@ validateCriticalEnv();
 // middleware
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow non-browser requests (curl/postman) and whitelisted browser origins.
-      if (!origin || corsOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(new Error(`CORS blocked for origin: ${origin}`));
-    },
+    origin: "*",
   }),
 );
 app.use(express.json());
@@ -78,13 +69,21 @@ app.post("/api/ai/recommend", authenticateFirebaseToken, getQuickInsight);
  * endpoint buat list makanan "recommended for You" di dashboard
  * Body: { userId }
  */
-app.post("/api/ai/food-list", authenticateFirebaseToken, getRecommendedFoodList);
+app.post(
+  "/api/ai/food-list",
+  authenticateFirebaseToken,
+  getRecommendedFoodList,
+);
 
 /**
  * endpoint buat review makanan spesifik (halaman detail)
  * Body: { userId, foodId }
  */
-app.post("/api/ai/food-detail", authenticateFirebaseToken, getFoodRecommendation);
+app.post(
+  "/api/ai/food-detail",
+  authenticateFirebaseToken,
+  getFoodRecommendation,
+);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
