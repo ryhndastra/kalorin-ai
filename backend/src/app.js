@@ -34,9 +34,18 @@ validateCriticalEnv();
 // middleware
 app.use(
   cors({
-    origin: "*",
+    origin: (origin, callback) => {
+      // Allow non-browser requests (curl/postman) and whitelisted browser origins.
+      if (!origin || corsOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
   }),
 );
+
+app.options("*", cors());
 app.use(express.json());
 
 //  ENDPOINTS
