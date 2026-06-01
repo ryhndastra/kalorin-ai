@@ -210,6 +210,39 @@ const getStreaks = async (req, res, next) => {
   }
 };
 
+// GET INSIGHTS DASHBOARD (aggregated)
+const getInsightsDashboard = async (req, res, next) => {
+  try {
+    const userId = req.user?.uid;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
+    }
+
+    const [trends, comparison, score, streaks] = await Promise.all([
+      getWeeklyTrendsService(userId),
+      getWeeklyComparisonService(userId),
+      getWeeklyScoreService(userId),
+      getStreakService(userId),
+    ]);
+
+    return res.json({
+      success: true,
+      data: {
+        trends,
+        comparison,
+        score,
+        streaks,
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   getWeeklySummary,
   getWeeklyTrends,
@@ -219,4 +252,5 @@ module.exports = {
   getNutritionPatterns,
   getFoodPatterns,
   getStreaks,
+  getInsightsDashboard,
 };

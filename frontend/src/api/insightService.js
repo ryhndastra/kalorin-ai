@@ -22,6 +22,16 @@ export const getWeeklyTrends = async (userId) => {
   return response.data;
 };
 
+export const getInsightsDashboard = async (userId) => {
+  const response = await apiClient.get("/insights/dashboard", {
+    params: {
+      userId,
+    },
+  });
+
+  return response.data;
+};
+
 export const getBehavioralInsights = async (userId) => {
   const response = await apiClient.get("/insights/behavioral-insights", {
     params: {

@@ -9,6 +9,7 @@ const {
   getNutritionPatterns,
   getFoodPatterns,
   getStreaks,
+  getInsightsDashboard,
 } = require("../controllers/insightController");
 const { authenticateFirebaseToken } = require("../middleware/auth");
 
@@ -19,6 +20,7 @@ router.get("/weekly-trends", getWeeklyTrends);
 router.get("/behavioral-insights", getBehavioralInsights);
 router.get("/weekly-comparison", getWeeklyComparison);
 router.get("/weekly-score", getWeeklyScore);
+router.get("/dashboard", getInsightsDashboard);
 router.get("/nutrition-patterns", getNutritionPatterns);
 router.get("/food-patterns", getFoodPatterns);
 router.get("/streaks", getStreaks);

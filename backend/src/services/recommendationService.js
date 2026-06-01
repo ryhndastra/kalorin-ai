@@ -98,6 +98,7 @@ const processWithLimit = async (items, limit, asyncFn) => {
 
 // Max food yang dikirim ke AI per request
 const MAX_AI_CANDIDATES = 10;
+const MAX_RECOMMENDATION_ITEMS = 10;
 
 // GENERATE RECOMMENDATION LIST
 const generateRecommendationList = async (userId) => {
@@ -175,11 +176,30 @@ const generateRecommendationList = async (userId) => {
     },
   );
 
-  // Sort dan ambil top 10
-  const finalFoods = aiResults
+  // Sort hasil AI
+  const aiRankedFoods = aiResults
     .filter(Boolean)
-    .sort((a, b) => b.matchScore - a.matchScore)
-    .slice(0, 10);
+    .sort((a, b) => b.matchScore - a.matchScore);
+
+  // Pastikan list tetap terisi stabil (maks 10) walau AI reject sebagian kandidat.
+  const selectedIds = new Set(aiRankedFoods.map((food) => food.id));
+  const fallbackFoods = filteredFoods
+    .map((food) => ({
+      ...food,
+      matchScore: normalizeScore(heuristicScore(food, userGoal, userStatus)),
+      explanation: "Recommended from nutrition profile matching.",
+    }))
+    .map((food) => ({
+      ...food,
+      matchLabel: getScoreLabel(food.matchScore),
+    }))
+    .filter((food) => !selectedIds.has(food.id))
+    .sort((a, b) => b.matchScore - a.matchScore);
+
+  const finalFoods = [...aiRankedFoods, ...fallbackFoods].slice(
+    0,
+    MAX_RECOMMENDATION_ITEMS,
+  );
 
   setCache(
     recommendationListCache,

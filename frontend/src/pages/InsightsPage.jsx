@@ -2,11 +2,8 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar/Navbar";
 import { useAuth } from "../context/AuthProvider";
 import {
-  getWeeklyTrends,
+  getInsightsDashboard,
   getBehavioralInsights,
-  getWeeklyComparison,
-  getWeeklyScore,
-  getStreaks,
 } from "../api/insightService";
 import InsightsTrendChart from "../components/insights/InsightsTrendChart";
 import BehavioralInsightsList from "../components/insights/BehavioralInsightsList";
@@ -57,19 +54,30 @@ const InsightsPage = () => {
         const userId = user.uid || user.id;
         setPageLoading(true);
 
-        // FAST ENDPOINTS
-        const [trendsRes, comparisonRes, scoreRes, streaksRes] =
-          await Promise.all([
-            getWeeklyTrends(userId),
-            getWeeklyComparison(userId),
-            getWeeklyScore(userId),
-            getStreaks(userId),
-          ]);
+        const dashboardRes = await getInsightsDashboard(userId);
+        const dashboardData = dashboardRes?.data || {};
 
-        setTrends(trendsRes.data);
-        setComparison(comparisonRes.data);
-        setScore(scoreRes.data);
-        setStreaks(streaksRes.data);
+        setTrends(dashboardData.trends || []);
+        setComparison(
+          dashboardData.comparison || {
+            caloriesChange: 0,
+            proteinsChange: 0,
+            trackingChange: 0,
+            hasPreviousData: false,
+          },
+        );
+        setScore(
+          dashboardData.score || {
+            overall: 0,
+            consistency: 0,
+            protein: 0,
+            calories: 0,
+            message: "",
+            trackingDays: 0,
+            proteinGoalHitDays: 0,
+          },
+        );
+        setStreaks(dashboardData.streaks || null);
       } catch (error) {
         console.error("❌ Failed fetching main insights:", error);
       } finally {

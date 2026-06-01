@@ -38,6 +38,10 @@ const MealsGrid = ({ userId }) => {
 
   // CURATED MEALS
   const curatedMeals = useMemo(() => {
+    if (foods.length <= 4) {
+      return foods.slice(0, 4);
+    }
+
     return foods.slice(4, 10);
   }, [foods]);
 
