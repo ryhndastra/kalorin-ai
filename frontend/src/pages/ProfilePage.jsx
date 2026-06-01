@@ -17,6 +17,10 @@ import {
   GENDER_OPTIONS,
   getActivityLevelDescription,
 } from "../utils/profileOptions";
+import {
+  PROFILE_LIMITS,
+  validateProfileInput,
+} from "../utils/profileValidation";
 
 const ProfilePage = () => {
   const { user } = useAuth();
@@ -96,6 +100,25 @@ const ProfilePage = () => {
               dailyCalories: 0,
               proteinTarget: 0,
             };
+
+      if (modalType === "stats") {
+        const parsedWeight = parseFloat(tempData.weight);
+        const parsedHeight = parseFloat(tempData.height);
+        const validationError = validateProfileInput({
+          birthdate: tempData.birthdate,
+          gender: tempData.gender,
+          activityLevel: tempData.activityLevel,
+          weight: parsedWeight,
+          height: parsedHeight,
+          isPregnant: tempData.isPregnant,
+          isBreastfeeding: tempData.isBreastfeeding,
+        });
+
+        if (validationError) {
+          toast.error(validationError);
+          return;
+        }
+      }
 
       const response = await updateUserProfile(payload);
 
@@ -209,6 +232,7 @@ const ProfilePage = () => {
               </label>
               <input
                 type="date"
+                max={new Date().toISOString().split("T")[0]}
                 className="w-full mt-1 p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-green-500 outline-none font-bold text-gray-700 transition-all"
                 value={tempData.birthdate || ""}
                 onChange={(e) =>
@@ -225,7 +249,15 @@ const ProfilePage = () => {
                   className="w-full mt-1 p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-green-500 outline-none font-bold text-gray-700"
                   value={tempData.gender || ""}
                   onChange={(e) =>
-                    setTempData({ ...tempData, gender: e.target.value })
+                    setTempData((current) => {
+                      const nextGender = e.target.value;
+                      const nextData = { ...current, gender: nextGender };
+                      if (nextGender === "male") {
+                        nextData.isPregnant = false;
+                        nextData.isBreastfeeding = false;
+                      }
+                      return nextData;
+                    })
                   }
                 >
                   <option value="">Select</option>
@@ -266,6 +298,7 @@ const ProfilePage = () => {
                 <input
                   type="checkbox"
                   checked={Boolean(tempData.isPregnant)}
+                  disabled={tempData.gender === "male"}
                   onChange={(e) =>
                     setTempData({ ...tempData, isPregnant: e.target.checked })
                   }
@@ -276,6 +309,7 @@ const ProfilePage = () => {
                 <input
                   type="checkbox"
                   checked={Boolean(tempData.isBreastfeeding)}
+                  disabled={tempData.gender === "male"}
                   onChange={(e) =>
                     setTempData({
                       ...tempData,
@@ -306,6 +340,8 @@ const ProfilePage = () => {
                 </label>
                 <input
                   type="number"
+                  min={PROFILE_LIMITS.minWeight}
+                  max={PROFILE_LIMITS.maxWeight}
                   className="w-full mt-1 p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-green-500 outline-none font-bold text-gray-700"
                   value={tempData.weight || ""}
                   onChange={(e) =>
@@ -319,6 +355,8 @@ const ProfilePage = () => {
                 </label>
                 <input
                   type="number"
+                  min={PROFILE_LIMITS.minHeight}
+                  max={PROFILE_LIMITS.maxHeight}
                   className="w-full mt-1 p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-green-500 outline-none font-bold text-gray-700"
                   value={tempData.height || ""}
                   onChange={(e) =>

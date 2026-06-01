@@ -77,6 +77,108 @@ describe("createOrUpdateProfile", () => {
     });
   });
 
+  test("rejects male profile with pregnancy flags", async () => {
+    prisma.profile.findUnique.mockResolvedValue(null);
+
+    const req = {
+      user: { uid: "uid-1", email: "user@mail.com" },
+      body: {
+        name: "User",
+        birthdate: "1998-01-01",
+        gender: "male",
+        activityLevel: "moderate",
+        weight: 70,
+        height: 170,
+        isPregnant: true,
+      },
+    };
+    const res = createMockRes();
+
+    await createOrUpdateProfile(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      success: false,
+      message:
+        "Pregnancy and breastfeeding options are only available for female profiles",
+    });
+  });
+
+  test("rejects future birthdate", async () => {
+    prisma.profile.findUnique.mockResolvedValue(null);
+
+    const req = {
+      user: { uid: "uid-1", email: "user@mail.com" },
+      body: {
+        name: "User",
+        birthdate: "2027-01-01",
+        gender: "female",
+        activityLevel: "moderate",
+        weight: 70,
+        height: 170,
+      },
+    };
+    const res = createMockRes();
+
+    await createOrUpdateProfile(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      success: false,
+      message: "Birthdate cannot be in the future",
+    });
+  });
+
+  test("rejects age under minimum threshold", async () => {
+    prisma.profile.findUnique.mockResolvedValue(null);
+
+    const req = {
+      user: { uid: "uid-1", email: "user@mail.com" },
+      body: {
+        name: "User",
+        birthdate: "2018-01-01",
+        gender: "female",
+        activityLevel: "moderate",
+        weight: 70,
+        height: 170,
+      },
+    };
+    const res = createMockRes();
+
+    await createOrUpdateProfile(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      success: false,
+      message: "Age must be between 12 and 100 years",
+    });
+  });
+
+  test("rejects unrealistic weight and height values", async () => {
+    prisma.profile.findUnique.mockResolvedValue(null);
+
+    const req = {
+      user: { uid: "uid-1", email: "user@mail.com" },
+      body: {
+        name: "User",
+        birthdate: "1998-01-01",
+        gender: "female",
+        activityLevel: "moderate",
+        weight: 9999999,
+        height: 1000,
+      },
+    };
+    const res = createMockRes();
+
+    await createOrUpdateProfile(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      success: false,
+      message: "Weight must be between 25 and 300 kg",
+    });
+  });
+
   test("uses req.user.uid as trusted source of userId instead of body.userId", async () => {
     prisma.profile.findUnique.mockResolvedValue(null);
     prisma.profile.upsert.mockResolvedValue({

@@ -19,6 +19,15 @@ const toBoolean = (value, fallback = false) => {
   return fallback;
 };
 
+const PROFILE_LIMITS = {
+  minAge: 12,
+  maxAge: 100,
+  minWeight: 25,
+  maxWeight: 300,
+  minHeight: 120,
+  maxHeight: 250,
+};
+
 const createOrUpdateProfile = async (req, res, next) => {
   try {
     const {
@@ -59,10 +68,27 @@ const createOrUpdateProfile = async (req, res, next) => {
       });
     }
 
-    if (birthdate && Number.isNaN(new Date(birthdate).getTime())) {
+    let parsedBirthdate = null;
+    if (birthdate) {
+      parsedBirthdate = new Date(birthdate);
+    }
+
+    if (birthdate && Number.isNaN(parsedBirthdate?.getTime())) {
       return res.status(400).json({
         success: false,
         message: "Invalid birthdate",
+      });
+    }
+
+    const now = new Date();
+    const latestBirthdateInput = birthdate || null;
+    const latestBirthdateDate = latestBirthdateInput
+      ? new Date(latestBirthdateInput)
+      : null;
+    if (latestBirthdateDate && latestBirthdateDate > now) {
+      return res.status(400).json({
+        success: false,
+        message: "Birthdate cannot be in the future",
       });
     }
 
@@ -107,10 +133,60 @@ const createOrUpdateProfile = async (req, res, next) => {
       });
     }
 
+    const numericWeight =
+      weight !== undefined && weight !== null ? parseFloat(weight) : null;
+    const numericHeight =
+      height !== undefined && height !== null ? parseFloat(height) : null;
+
+    if (numericWeight !== null && numericWeight > 0) {
+      if (
+        numericWeight < PROFILE_LIMITS.minWeight ||
+        numericWeight > PROFILE_LIMITS.maxWeight
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: `Weight must be between ${PROFILE_LIMITS.minWeight} and ${PROFILE_LIMITS.maxWeight} kg`,
+        });
+      }
+    }
+
+    if (numericHeight !== null && numericHeight > 0) {
+      if (
+        numericHeight < PROFILE_LIMITS.minHeight ||
+        numericHeight > PROFILE_LIMITS.maxHeight
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: `Height must be between ${PROFILE_LIMITS.minHeight} and ${PROFILE_LIMITS.maxHeight} cm`,
+        });
+      }
+    }
+
+    const latestBirthdateForAge = birthdate || existingProfile?.birthdate;
+    if (latestBirthdateForAge) {
+      const age = calculateAge(latestBirthdateForAge);
+      if (age < PROFILE_LIMITS.minAge || age > PROFILE_LIMITS.maxAge) {
+        return res.status(400).json({
+          success: false,
+          message: `Age must be between ${PROFILE_LIMITS.minAge} and ${PROFILE_LIMITS.maxAge} years`,
+        });
+      }
+    }
+
+    if (
+      normalizedGender === "male" &&
+      (normalizedIsPregnant || normalizedIsBreastfeeding)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Pregnancy and breastfeeding options are only available for female profiles",
+      });
+    }
+
     // hitung status BMI
     const userStatus =
-      weight && height
-        ? calculateUserStatus(weight, height)
+      numericWeight && numericHeight
+        ? calculateUserStatus(numericWeight, numericHeight)
         : existingProfile?.userStatus || null;
 
     // logic auto-calculate kebutuhan kalori & protein berdasarkan data terbaru (jika ada perubahan fisik atau goal, dan tidak sedang input manual)
@@ -121,8 +197,8 @@ const createOrUpdateProfile = async (req, res, next) => {
     // a. user baru (tidak ada existingProfile)
     // b. user lama ganti goal, berat, atau tinggi, dan tidak sedang input kalori manual
     const isPhysicalDataChanged =
-      (weight && weight !== existingProfile?.weight) ||
-      (height && height !== existingProfile?.height) ||
+      (numericWeight && numericWeight !== existingProfile?.weight) ||
+      (numericHeight && numericHeight !== existingProfile?.height) ||
       (normalizedGender && normalizedGender !== existingProfile?.gender) ||
       (normalizedActivityLevel &&
         normalizedActivityLevel !== existingProfile?.activityLevel) ||
@@ -147,8 +223,8 @@ const createOrUpdateProfile = async (req, res, next) => {
     if ((!existingProfile || isPhysicalDataChanged) && !isManualInput) {
       // hitung ulang pake data terbaru (pake data lama sebagai fallback)
       const autoNeeds = calculateDailyNeeds(
-        weight || existingProfile?.weight || 0,
-        height || existingProfile?.height || 0,
+        numericWeight || existingProfile?.weight || 0,
+        numericHeight || existingProfile?.height || 0,
         birthdate || existingProfile?.birthdate,
         goal || existingProfile?.goal || "Stay Healthy",
         normalizedGender || existingProfile?.gender,
@@ -167,8 +243,8 @@ const createOrUpdateProfile = async (req, res, next) => {
       where: { userId: userId },
       update: {
         fullName: name,
-        ...(weight > 0 && { weight: parseFloat(weight) }),
-        ...(height > 0 && { height: parseFloat(height) }),
+        ...(numericWeight > 0 && { weight: numericWeight }),
+        ...(numericHeight > 0 && { height: numericHeight }),
         ...(normalizedGender && { gender: normalizedGender }),
         ...(normalizedActivityLevel && {
           activityLevel: normalizedActivityLevel,
@@ -202,8 +278,8 @@ const createOrUpdateProfile = async (req, res, next) => {
         userId,
         email,
         fullName: name || "User",
-        weight: parseFloat(weight) || 0,
-        height: parseFloat(height) || 0,
+        weight: numericWeight || 0,
+        height: numericHeight || 0,
         gender: normalizedGender,
         isPregnant: normalizedIsPregnant,
         isBreastfeeding: normalizedIsBreastfeeding,

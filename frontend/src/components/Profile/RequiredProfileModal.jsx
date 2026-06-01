@@ -8,6 +8,10 @@ import {
   GENDER_OPTIONS,
   getActivityLevelDescription,
 } from "../../utils/profileOptions";
+import {
+  PROFILE_LIMITS,
+  validateProfileInput,
+} from "../../utils/profileValidation";
 
 const RequiredProfileModal = () => {
   const { user } = useAuth();
@@ -26,7 +30,20 @@ const RequiredProfileModal = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   const handleChange = (field, value) => {
-    setFormData((current) => ({ ...current, [field]: value }));
+    setFormData((current) => {
+      const nextData = { ...current, [field]: value };
+
+      if (
+        field === "gender" &&
+        value === "male" &&
+        (nextData.isPregnant || nextData.isBreastfeeding)
+      ) {
+        nextData.isPregnant = false;
+        nextData.isBreastfeeding = false;
+      }
+
+      return nextData;
+    });
     setErrorMsg("");
   };
 
@@ -34,14 +51,18 @@ const RequiredProfileModal = () => {
     const weight = parseFloat(formData.weight);
     const height = parseFloat(formData.height);
 
-    if (
-      !formData.birthdate ||
-      !formData.gender ||
-      !formData.activityLevel ||
-      !weight ||
-      !height
-    ) {
-      setErrorMsg("Tanggal lahir, gender, aktivitas, berat, dan tinggi wajib diisi.");
+    const validationError = validateProfileInput({
+      birthdate: formData.birthdate,
+      gender: formData.gender,
+      activityLevel: formData.activityLevel,
+      weight,
+      height,
+      isPregnant: formData.isPregnant,
+      isBreastfeeding: formData.isBreastfeeding,
+    });
+
+    if (validationError) {
+      setErrorMsg(validationError);
       return;
     }
 
@@ -105,6 +126,7 @@ const RequiredProfileModal = () => {
             </label>
             <input
               type="date"
+              max={new Date().toISOString().split("T")[0]}
               className="mt-1 w-full rounded-2xl border border-gray-100 bg-gray-50 p-4 font-bold text-gray-700 outline-none transition-all focus:border-green-500"
               value={formData.birthdate}
               onChange={(e) => handleChange("birthdate", e.target.value)}
@@ -156,6 +178,7 @@ const RequiredProfileModal = () => {
               <input
                 type="checkbox"
                 checked={formData.isPregnant}
+                disabled={formData.gender === "male"}
                 onChange={(e) => handleChange("isPregnant", e.target.checked)}
               />
               Pregnant
@@ -164,6 +187,7 @@ const RequiredProfileModal = () => {
               <input
                 type="checkbox"
                 checked={formData.isBreastfeeding}
+                disabled={formData.gender === "male"}
                 onChange={(e) =>
                   handleChange("isBreastfeeding", e.target.checked)
                 }
@@ -193,7 +217,8 @@ const RequiredProfileModal = () => {
               </label>
               <input
                 type="number"
-                min="1"
+                min={PROFILE_LIMITS.minWeight}
+                max={PROFILE_LIMITS.maxWeight}
                 step="0.1"
                 className="mt-1 w-full rounded-2xl border border-gray-100 bg-gray-50 p-4 font-bold text-gray-700 outline-none transition-all focus:border-green-500"
                 value={formData.weight}
@@ -207,7 +232,8 @@ const RequiredProfileModal = () => {
               </label>
               <input
                 type="number"
-                min="1"
+                min={PROFILE_LIMITS.minHeight}
+                max={PROFILE_LIMITS.maxHeight}
                 step="0.1"
                 className="mt-1 w-full rounded-2xl border border-gray-100 bg-gray-50 p-4 font-bold text-gray-700 outline-none transition-all focus:border-green-500"
                 value={formData.height}
