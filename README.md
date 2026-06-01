@@ -6,26 +6,6 @@
 
 KaloriN AI is a nutrition tracking web app with AI-powered food scanning, meal logging, personalized recommendations, BMI-based calorie targets, and weekly nutrition insights.
 
-## Project Brief
-
-### Problem
-Many users do not consistently track nutrition because manual logging is time-consuming and hard to interpret.
-
-### Solution
-KaloriN AI combines food image scanning, meal tracking, and AI-generated insights to help users make daily nutrition decisions faster.
-
-### Target Users
-- People who want to monitor calorie and protein intake
-- Users who need simple BMI-based daily targets
-- Users who prefer visual/AI-assisted food input over manual entry
-
-### Core Features
-- AI food image scanner
-- Food search and meal logging
-- Personalized food recommendations
-- BMI, calorie, and protein target calculation
-- Weekly trend and behavioral insights
-
 ## Tech Stack
 
 | Layer | Technology |
