@@ -88,7 +88,7 @@ GEMINI_TIMEOUT_SECONDS=12
 ## Quick Replication Steps
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/ryhndastra/kalorin-ai.git
 cd kalorinAi
 ```
 
