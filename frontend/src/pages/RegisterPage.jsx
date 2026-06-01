@@ -20,18 +20,38 @@ const RegisterPage = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [errorMsg, setErrorMsg] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+
+  const validateRegisterForm = () => {
+    const errors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!fullName.trim()) errors.fullName = "Full name is required.";
+    if (!email.trim()) errors.email = "Email is required.";
+    else if (!emailRegex.test(email.trim()))
+      errors.email = "Email format is invalid.";
+    if (!password) errors.password = "Password is required.";
+    else if (password.length < 6)
+      errors.password = "Password must be at least 6 characters.";
+    if (!confirmPassword)
+      errors.confirmPassword = "Confirm password is required.";
+    else if (password !== confirmPassword)
+      errors.confirmPassword = "Password and confirm password do not match.";
+
+    return errors;
+  };
 
   const handleEmailRegister = async (e) => {
     e.preventDefault();
     setErrorMsg("");
+    setFieldErrors({});
 
-    if (password !== confirmPassword) {
-      return setErrorMsg("Password dan konfirmasi password tidak cocok!");
-    }
-
-    if (password.length < 6) {
-      return setErrorMsg("Password harus minimal 6 karakter.");
+    const errors = validateRegisterForm();
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setErrorMsg("Please correct the highlighted fields.");
+      return;
     }
 
     setIsLoading(true);
@@ -109,37 +129,61 @@ const RegisterPage = () => {
           </div>
         )}
 
-        <form onSubmit={handleEmailRegister} className="space-y-4">
+        <form onSubmit={handleEmailRegister} noValidate className="space-y-4">
           <AuthInput
             label="Full Name"
             type="text"
             value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
+            onChange={(e) => {
+              setFullName(e.target.value);
+              if (fieldErrors.fullName) {
+                setFieldErrors((prev) => ({ ...prev, fullName: "" }));
+              }
+            }}
             placeholder="Enter your full name"
+            error={fieldErrors.fullName}
           />
 
           <AuthInput
             label="Email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (fieldErrors.email) {
+                setFieldErrors((prev) => ({ ...prev, email: "" }));
+              }
+            }}
             placeholder="Enter Email"
+            error={fieldErrors.email}
           />
 
           <AuthInput
             label="Password"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (fieldErrors.password) {
+                setFieldErrors((prev) => ({ ...prev, password: "" }));
+              }
+            }}
             placeholder="Create Password"
+            error={fieldErrors.password}
           />
 
           <AuthInput
             label="Confirm Password"
             type="password"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              if (fieldErrors.confirmPassword) {
+                setFieldErrors((prev) => ({ ...prev, confirmPassword: "" }));
+              }
+            }}
             placeholder="Repeat Password"
+            error={fieldErrors.confirmPassword}
           />
 
           <button

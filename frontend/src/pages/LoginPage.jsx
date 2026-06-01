@@ -12,12 +12,34 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+
+  const validateLoginForm = () => {
+    const errors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!email.trim()) errors.email = "Email is required.";
+    else if (!emailRegex.test(email.trim()))
+      errors.email = "Email format is invalid.";
+
+    if (!password) errors.password = "Password is required.";
+    return errors;
+  };
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
+    setFieldErrors({});
     setErrorMsg("");
+
+    const errors = validateLoginForm();
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setErrorMsg("Please correct the highlighted fields.");
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
       const userCredential = await signInWithEmailAndPassword(
@@ -83,22 +105,34 @@ const LoginPage = () => {
           </div>
         )}
 
-        <form onSubmit={handleEmailLogin} className="space-y-5">
+        <form onSubmit={handleEmailLogin} noValidate className="space-y-5">
           <AuthInput
             label="Email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (fieldErrors.email) {
+                setFieldErrors((prev) => ({ ...prev, email: "" }));
+              }
+            }}
             placeholder="Enter Email"
+            error={fieldErrors.email}
           />
 
           <AuthInput
             label="Password"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (fieldErrors.password) {
+                setFieldErrors((prev) => ({ ...prev, password: "" }));
+              }
+            }}
             placeholder="Enter Password"
             rightLabel="Forgot Password?"
+            error={fieldErrors.password}
           />
 
           <button

@@ -8,7 +8,8 @@ const AuthInput = ({
   onChange,
   placeholder,
   required = true,
-  rightLabel, 
+  rightLabel,
+  error,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
@@ -33,9 +34,10 @@ const AuthInput = ({
           onChange={onChange}
           placeholder={placeholder}
           required={required}
+          aria-invalid={Boolean(error)}
           className={`w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-colors ${
             isPassword ? "pr-12" : ""
-          }`}
+          } ${error ? "border-red-400 focus:border-red-500 focus:ring-red-500/20" : ""}`}
         />
         {isPassword && (
           <button
@@ -47,6 +49,7 @@ const AuthInput = ({
           </button>
         )}
       </div>
+      {error && <p className="mt-1 text-xs font-medium text-red-600">{error}</p>}
     </div>
   );
 };
