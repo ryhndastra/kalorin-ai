@@ -108,9 +108,11 @@ const RegisterPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-white to-[#dcfce7] flex flex-col items-center justify-center p-4 font-sans py-10">
       <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold text-gray-900">
-          KaloriN <span className="text-green-500">AI</span>
-        </h1>
+        <img
+          src="images/logo/kalorinLogo.png"
+          alt="KaloriN AI"
+          className="w-64"
+        />
       </div>
 
       <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] w-full max-w-md p-8">
