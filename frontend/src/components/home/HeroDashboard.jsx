@@ -157,14 +157,6 @@ const HeroDashboard = ({ user, userData }) => {
                 color="bg-[#F59E0B]"
                 bgTrack="bg-white/20"
               />
-
-              {/* buat water masih dummy */}
-              <MacroBar
-                label="Water"
-                percentage={60}
-                color="bg-[#818CF8]"
-                bgTrack="bg-white/20"
-              />
             </div>
           </div>
         </div>
