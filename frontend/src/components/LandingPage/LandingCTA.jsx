@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const LandingCTA = () => {
   return (
@@ -14,9 +15,12 @@ const LandingCTA = () => {
         </p>
 
         {/* Button */}
-        <button className="bg-[#facc15] text-gray-900 font-extrabold text-lg px-10 py-4 rounded-full w- sm:w-auto hover:bg-[#eab308] transition-colors shadow-lg shadow-yellow-500/20">
+        <Link
+          to="/register"
+          className="bg-[#facc15] text-gray-900 font-extrabold text-lg px-10 py-4 rounded-full w-full sm:w-auto hover:bg-[#eab308] transition-colors shadow-lg shadow-yellow-500/20 inline-block text-center"
+        >
           Daftar Sekarang — Gratis
-        </button>
+        </Link>
 
         {/* Catatan kecil di bawah tombol */}
         <p className="text-green-200 text-sm mt-6 font-medium">
