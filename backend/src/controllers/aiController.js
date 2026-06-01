@@ -8,11 +8,20 @@ const {
   isPositiveNumber,
 } = require("../utils/requestValidation");
 
+const resolveLanguage = (req) => {
+  const raw =
+    req.headers["x-app-language"] ||
+    req.headers["accept-language"] ||
+    "en";
+  return String(raw).toLowerCase().startsWith("id") ? "id" : "en";
+};
+
 // QUICK INSIGHT
 const getQuickInsight = async (req, res, next) => {
   try {
     const { macroContext } = req.body;
     const userId = req.user?.uid;
+    const language = resolveLanguage(req);
 
     if (isBlank(userId)) {
       return res.status(400).json({
@@ -21,7 +30,7 @@ const getQuickInsight = async (req, res, next) => {
       });
     }
 
-    const recommendation = await generateInsight(userId, macroContext);
+    const recommendation = await generateInsight(userId, macroContext, language);
 
     return res.status(200).json({
       success: true,
@@ -36,6 +45,7 @@ const getQuickInsight = async (req, res, next) => {
 const getRecommendedFoodList = async (req, res, next) => {
   try {
     const userId = req.user?.uid;
+    const language = resolveLanguage(req);
 
     if (isBlank(userId)) {
       return res.status(400).json({
@@ -44,7 +54,7 @@ const getRecommendedFoodList = async (req, res, next) => {
       });
     }
 
-    const data = await generateRecommendationList(userId);
+    const data = await generateRecommendationList(userId, language);
 
     return res.status(200).json({
       success: true,
@@ -60,6 +70,7 @@ const getFoodRecommendation = async (req, res, next) => {
   try {
     const { foodId } = req.body;
     const userId = req.user?.uid;
+    const language = resolveLanguage(req);
 
     if (isBlank(userId) || !isPositiveNumber(foodId)) {
       return res.status(400).json({
@@ -68,7 +79,7 @@ const getFoodRecommendation = async (req, res, next) => {
       });
     }
 
-    const recommendation = await generateFoodDetail(userId, foodId);
+    const recommendation = await generateFoodDetail(userId, foodId, language);
 
     return res.status(200).json({
       success: true,

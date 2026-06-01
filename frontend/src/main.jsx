@@ -6,6 +6,7 @@ import { AuthProvider } from "./context/AuthProvider.jsx";
 import { UserProvider } from "./context/UserContext.jsx";
 import { BrowserRouter } from "react-router-dom";
 import { registerServiceWorker } from "./registerServiceWorker.js";
+import "./i18n";
 
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>

@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/static-components */
 import React, { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ResponsiveContainer,
   BarChart,
@@ -35,6 +36,14 @@ const METRICS = [
 ];
 
 const InsightsTrendChart = ({ trends }) => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
+  const metricLabels = {
+    calories: isId ? "Kalori" : "Calories",
+    proteins: "Protein",
+    carbs: isId ? "Karbo" : "Carbs",
+    fat: isId ? "Lemak" : "Fat",
+  };
   // ACTIVE METRIC
   const [activeMetric, setActiveMetric] = useState("calories");
 
@@ -51,7 +60,7 @@ const InsightsTrendChart = ({ trends }) => {
       const existing = trends?.find((item) => item.date === localDate) || {};
 
       result.push({
-        day: date.toLocaleDateString("en-US", {
+        day: date.toLocaleDateString(isId ? "id-ID" : "en-US", {
           weekday: "short",
         }),
 
@@ -63,7 +72,7 @@ const InsightsTrendChart = ({ trends }) => {
     }
 
     return result;
-  }, [trends]);
+  }, [trends, isId]);
 
   // ACTIVE CONFIG
   const activeConfig = METRICS.find((metric) => metric.key === activeMetric);
@@ -91,7 +100,7 @@ const InsightsTrendChart = ({ trends }) => {
               color: activeConfig.color,
             }}
           >
-            {activeConfig.label} :
+            {metricLabels[activeConfig.key] || activeConfig.label} :
             <span className="font-bold"> {payload[0].value}</span>
           </p>
         </div>
@@ -112,11 +121,12 @@ const InsightsTrendChart = ({ trends }) => {
             <BarChart3 className="text-[#22C55E]" size={30} />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-3 tracking-tight">
-            Nutrition Trends
+            {isId ? "Tren Nutrisi" : "Nutrition Trends"}
           </h2>
           <p className="text-gray-500 leading-relaxed text-lg">
-            Track meals consistently for a few days to unlock weekly nutrition
-            trends and behavior analysis.
+            {isId
+              ? "Lacak meal secara konsisten beberapa hari untuk membuka tren nutrisi mingguan dan analisis perilaku."
+              : "Track meals consistently for a few days to unlock weekly nutrition trends and behavior analysis."}
           </p>
         </div>
       </div>
@@ -128,9 +138,13 @@ const InsightsTrendChart = ({ trends }) => {
       {/* HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5 mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Nutrition Trends</h2>
+          <h2 className="text-2xl font-bold text-gray-800">
+            {isId ? "Tren Nutrisi" : "Nutrition Trends"}
+          </h2>
           <p className="text-sm text-gray-500 mt-1">
-            Last 7 days nutrition overview
+            {isId
+              ? "Ringkasan nutrisi 7 hari terakhir"
+              : "Last 7 days nutrition overview"}
           </p>
         </div>
 
@@ -148,7 +162,7 @@ const InsightsTrendChart = ({ trends }) => {
                     : "bg-white text-gray-500 border-gray-200 hover:border-gray-300 hover:text-gray-700 hover:bg-gray-50"
                 }`}
               >
-                {metric.label}
+                {metricLabels[metric.key] || metric.label}
               </button>
             );
           })}
@@ -200,11 +214,11 @@ const InsightsTrendChart = ({ trends }) => {
       {/* INSIGHT */}
       <div className="mt-5 bg-[#F8FAFC] border border-gray-100 rounded-2xl p-4">
         <p className="text-sm text-gray-600 leading-relaxed">
-          Highest{" "}
+          {isId ? "Asupan " : "Highest "}
           <span className="font-semibold text-gray-900">
-            {activeConfig.label.toLowerCase()}
+            {(metricLabels[activeConfig.key] || activeConfig.label).toLowerCase()}
           </span>{" "}
-          intake occurred on{" "}
+          {isId ? "tertinggi terjadi pada " : "intake occurred on "}
           <span className="font-semibold text-gray-900">{highestDay?.day}</span>
           .
         </p>

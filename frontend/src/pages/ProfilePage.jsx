@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { useUser } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
@@ -23,6 +24,8 @@ import {
 } from "../utils/profileValidation";
 
 const ProfilePage = () => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   const { user } = useAuth();
   const { userData, fetchProfile } = useUser();
   const navigate = useNavigate();
@@ -31,6 +34,39 @@ const ProfilePage = () => {
   const [modalType, setModalType] = useState(null);
   const [tempData, setTempData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const genderLabelMap = {
+    male: isId ? "Laki-laki" : "Male",
+    female: isId ? "Perempuan" : "Female",
+  };
+  const activityLabelMap = {
+    sedentary: isId ? "Minim Aktivitas" : "Sedentary",
+    light: isId ? "Aktif Ringan" : "Lightly Active",
+    moderate: isId ? "Aktif Sedang" : "Moderately Active",
+    active: isId ? "Aktif" : "Active",
+    very_active: isId ? "Sangat Aktif" : "Very Active",
+  };
+  const activityDescriptionMap = {
+    sedentary: isId
+      ? "Hampir tidak olahraga, lebih banyak duduk."
+      : "Little to no exercise, mostly sitting.",
+    light: isId
+      ? "Olahraga ringan atau jalan kaki 1-3 hari/minggu."
+      : "Light exercise or walking 1-3 days/week.",
+    moderate: isId
+      ? "Olahraga sedang 3-5 hari/minggu."
+      : "Moderate exercise 3-5 days/week.",
+    active: isId
+      ? "Olahraga berat 6-7 hari/minggu."
+      : "Hard exercise 6-7 days/week.",
+    very_active: isId
+      ? "Latihan sangat berat atau pekerjaan fisik hampir setiap hari."
+      : "Very hard training or physical job most days.",
+  };
+  const goalLabelMap = {
+    "Stay Healthy": isId ? "Tetap Sehat" : "Stay Healthy",
+    "Weight Loss": isId ? "Turun Berat Badan" : "Weight Loss",
+    Bulking: isId ? "Naik Massa" : "Bulking",
+  };
   const isPlaceholderName = (value) => {
     if (typeof value !== "string") return true;
     const normalized = value.trim().toLowerCase();
@@ -58,7 +94,7 @@ const ProfilePage = () => {
       isPregnant: Boolean(userData?.isPregnant),
       isBreastfeeding: Boolean(userData?.isBreastfeeding),
       hasMedicalCondition: Boolean(userData?.hasMedicalCondition),
-      goal: userData?.goal || "Stay Healthy",
+      goal: userData?.goal || (isId ? "Tetap Sehat" : "Stay Healthy"),
       dailyCalories: userData?.dailyCalories || 2000,
       proteinTarget: userData?.proteinTarget || 100,
     });
@@ -70,7 +106,7 @@ const ProfilePage = () => {
     const currentUserId = user?.id;
 
     if (!currentUserId) {
-      console.error("User ID tidak ditemukan!");
+      console.error(isId ? "User ID tidak ditemukan!" : "User ID not found!");
       return;
     }
 
@@ -79,7 +115,7 @@ const ProfilePage = () => {
       const cleanName = tempData.fullName?.trim();
 
       if (modalType === "name" && !cleanName) {
-        toast.error("Nama tidak boleh kosong!");
+        toast.error(isId ? "Nama tidak boleh kosong!" : "Name cannot be empty!");
         return;
       }
 
@@ -124,6 +160,7 @@ const ProfilePage = () => {
           height: parsedHeight,
           isPregnant: tempData.isPregnant,
           isBreastfeeding: tempData.isBreastfeeding,
+          language: isId ? "id" : "en",
         });
 
         if (validationError) {
@@ -139,11 +176,14 @@ const ProfilePage = () => {
         await fetchProfile(currentUserId, true);
 
         setModalType(null);
-        toast.success("Profil berhasil diperbarui.");
+        toast.success(isId ? "Profil berhasil diperbarui." : "Profile updated successfully.");
       }
     } catch (error) {
       console.error("❌ Error Detail:", error.response?.data || error.message);
-      toast.error(error.response?.data?.message || "Gagal simpan data profile!");
+      toast.error(
+        error.response?.data?.message ||
+          (isId ? "Gagal menyimpan profil." : "Failed to save profile."),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -170,12 +210,14 @@ const ProfilePage = () => {
       <main className="max-w-[800px] mx-auto px-6 mt-8 space-y-6">
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="font-bold text-lg text-gray-800">Account Name</h3>
+            <h3 className="font-bold text-lg text-gray-800">
+              {isId ? "Nama Akun" : "Account Name"}
+            </h3>
             <button
               onClick={() => openModal("name")}
               className="text-green-600 flex items-center gap-2 text-sm font-semibold hover:bg-green-50 px-3 py-1 rounded-lg transition-all"
             >
-              <PencilLine size={16} /> Edit
+              <PencilLine size={16} /> {isId ? "Ubah" : "Edit"}
             </button>
           </div>
 
@@ -185,7 +227,7 @@ const ProfilePage = () => {
             </div>
             <div>
               <p className="text-[#616161] font-medium text-base">
-                Display Name
+                {isId ? "Nama Tampil" : "Display Name"}
               </p>
               <p className="font-bold text-[#212121] text-lg">
                 {resolvedDisplayName}
@@ -204,7 +246,7 @@ const ProfilePage = () => {
           onClick={handleLogout}
           className="w-full py-5 text-[#FF4B4B] font-bold text-lg rounded-[24px] border-2 border-[#FFEDED] bg-[#FFF5F5] hover:bg-[#FFEDED] transition-all duration-300 mt-8 mb-10 shadow-sm"
         >
-          Sign Out
+          {isId ? "Keluar" : "Sign Out"}
         </button>
       </main>
 
@@ -216,16 +258,22 @@ const ProfilePage = () => {
         isLoading={isLoading}
         title={
           modalType === "name"
-            ? "Edit Account Name"
+            ? isId
+              ? "Ubah Nama Akun"
+              : "Edit Account Name"
             : modalType === "stats"
-              ? "Edit Body Stats"
-              : "Change Goal Settings"
+              ? isId
+                ? "Ubah Data Tubuh"
+                : "Edit Body Stats"
+              : isId
+                ? "Ubah Pengaturan Target"
+                : "Change Goal Settings"
         }
       >
         {modalType === "name" ? (
           <div>
             <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-wider">
-              Full Name
+              {isId ? "Nama Lengkap" : "Full Name"}
             </label>
             <input
               type="text"
@@ -240,7 +288,7 @@ const ProfilePage = () => {
           <div className="space-y-5">
             <div>
               <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-wider">
-                Birthdate
+                {isId ? "Tanggal Lahir" : "Birthdate"}
               </label>
               <input
                 type="date"
@@ -255,7 +303,7 @@ const ProfilePage = () => {
             <div className="flex gap-4">
               <div className="flex-1">
                 <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-wider">
-                  Gender
+                  {isId ? "Jenis Kelamin" : "Gender"}
                 </label>
                 <select
                   className="w-full mt-1 p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-green-500 outline-none font-bold text-gray-700"
@@ -272,17 +320,17 @@ const ProfilePage = () => {
                     })
                   }
                 >
-                  <option value="">Select</option>
+                  <option value="">{isId ? "Pilih" : "Select"}</option>
                   {GENDER_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
-                      {option.label}
+                      {genderLabelMap[option.value] || option.label}
                     </option>
                   ))}
                 </select>
               </div>
               <div className="flex-1">
                 <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-wider">
-                  Activity
+                  {isId ? "Aktivitas" : "Activity"}
                 </label>
                 <select
                   className="w-full mt-1 p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-green-500 outline-none font-bold text-gray-700"
@@ -296,12 +344,13 @@ const ProfilePage = () => {
                 >
                   {ACTIVITY_LEVEL_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
-                      {option.label}
+                      {activityLabelMap[option.value] || option.label}
                     </option>
                   ))}
                 </select>
                 <p className="mt-2 min-h-5 text-xs font-medium leading-5 text-gray-500">
-                  {getActivityLevelDescription(tempData.activityLevel)}
+                  {activityDescriptionMap[tempData.activityLevel] ||
+                    getActivityLevelDescription(tempData.activityLevel)}
                 </p>
               </div>
             </div>
@@ -315,7 +364,7 @@ const ProfilePage = () => {
                     setTempData({ ...tempData, isPregnant: e.target.checked })
                   }
                 />
-                Pregnant
+                {isId ? "Sedang Hamil" : "Pregnant"}
               </label>
               <label className="flex items-center gap-3 text-sm font-semibold text-gray-700">
                 <input
@@ -329,7 +378,7 @@ const ProfilePage = () => {
                     })
                   }
                 />
-                Breastfeeding
+                {isId ? "Menyusui" : "Breastfeeding"}
               </label>
               <label className="flex items-center gap-3 text-sm font-semibold text-gray-700">
                 <input
@@ -342,13 +391,13 @@ const ProfilePage = () => {
                     })
                   }
                 />
-                Have medical condition
+                {isId ? "Memiliki kondisi medis" : "Have medical condition"}
               </label>
             </div>
             <div className="flex gap-4">
               <div className="flex-1">
                 <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-wider">
-                  Weight (kg)
+                  {isId ? "Berat (kg)" : "Weight (kg)"}
                 </label>
                 <input
                   type="number"
@@ -363,7 +412,7 @@ const ProfilePage = () => {
               </div>
               <div className="flex-1">
                 <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-wider">
-                  Height (cm)
+                  {isId ? "Tinggi (cm)" : "Height (cm)"}
                 </label>
                 <input
                   type="number"
@@ -382,7 +431,7 @@ const ProfilePage = () => {
           <div className="space-y-5">
             <div>
               <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-wider">
-                Current Goal
+                {isId ? "Target Saat Ini" : "Current Goal"}
               </label>
               <select
                 className="w-full mt-1 p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-green-500 outline-none font-bold text-gray-700 appearance-none"
@@ -391,14 +440,14 @@ const ProfilePage = () => {
                   setTempData({ ...tempData, goal: e.target.value })
                 }
               >
-                <option value="Stay Healthy">Stay Healthy</option>
-                <option value="Weight Loss">Weight Loss</option>
-                <option value="Bulking">Bulking</option>
+                <option value="Stay Healthy">{goalLabelMap["Stay Healthy"]}</option>
+                <option value="Weight Loss">{goalLabelMap["Weight Loss"]}</option>
+                <option value="Bulking">{goalLabelMap.Bulking}</option>
               </select>
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-wider">
-                Activity Level
+                {isId ? "Level Aktivitas" : "Activity Level"}
               </label>
               <select
                 className="w-full mt-1 p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-green-500 outline-none font-bold text-gray-700 appearance-none"
@@ -412,17 +461,18 @@ const ProfilePage = () => {
               >
                 {ACTIVITY_LEVEL_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {option.label}
+                    {activityLabelMap[option.value] || option.label}
                   </option>
                 ))}
               </select>
               <p className="mt-2 text-xs font-medium leading-5 text-gray-500">
-                {getActivityLevelDescription(tempData.activityLevel)}
+                {activityDescriptionMap[tempData.activityLevel] ||
+                  getActivityLevelDescription(tempData.activityLevel)}
               </p>
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-wider">
-                Daily Calories Goal (kcal)
+                {isId ? "Target Kalori Harian (kkal)" : "Daily Calories Goal (kcal)"}
               </label>
               <input
                 type="number"
@@ -435,7 +485,7 @@ const ProfilePage = () => {
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-wider">
-                Protein Target (g)
+                {isId ? "Target Protein (g)" : "Protein Target (g)"}
               </label>
               <input
                 type="number"

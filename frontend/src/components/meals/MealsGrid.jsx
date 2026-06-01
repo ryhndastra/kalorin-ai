@@ -1,10 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import FoodCard from "./MealsFoodCard";
 import { getFoodRecommendations } from "../../api/aiService";
 
 // MEALS GRID
 const MealsGrid = ({ userId }) => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   const [foods, setFoods] = useState([]);
   const [isFetching, setIsFetching] = useState(false);
 
@@ -34,7 +37,7 @@ const MealsGrid = ({ userId }) => {
     return () => {
       active = false;
     };
-  }, [userId]);
+  }, [userId, isId]);
 
   // CURATED MEALS
   const curatedMeals = useMemo(() => {
@@ -49,10 +52,13 @@ const MealsGrid = ({ userId }) => {
     <div className="max-w-[1600px] mx-auto px-6 mt-10 mb-14">
       {/* HEADER */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">More AI Picks</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          {isId ? "Pilihan AI Lainnya" : "More AI Picks"}
+        </h2>
         <p className="text-sm text-gray-500 leading-relaxed">
-          RinAI menemukan rekomendasi makanan lain yang tetap cocok dengan
-          kebutuhan nutrisi dan goal kamu.
+          {isId
+            ? "RinAI menemukan rekomendasi makanan lain yang tetap cocok dengan kebutuhan nutrisi dan targetmu."
+            : "RinAI found additional food recommendations that still match your nutrition needs and goals."}
         </p>
       </div>
 
@@ -61,7 +67,9 @@ const MealsGrid = ({ userId }) => {
         <div className="flex flex-col items-center justify-center py-16 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
           <Loader2 className="animate-spin text-[#22C55E] mb-3" size={34} />
           <p className="text-gray-400 text-sm font-medium">
-            RinAI sedang mencari rekomendasi lainnya...
+            {isId
+              ? "RinAI sedang mencari rekomendasi lainnya..."
+              : "RinAI is finding more recommendations..."}
           </p>
         </div>
       ) : curatedMeals.length > 0 ? (
@@ -75,11 +83,15 @@ const MealsGrid = ({ userId }) => {
         // EMPTY
         <div className="bg-gray-50 rounded-3xl border border-dashed border-gray-200 py-16 text-center">
           <h3 className="text-gray-700 font-bold mb-2">
-            Belum ada rekomendasi tambahan
+            {isId
+              ? "Belum ada rekomendasi tambahan"
+              : "No additional recommendations yet"}
           </h3>
 
           <p className="text-sm text-gray-400">
-            RinAI masih mempelajari preferensi nutrisimu.
+            {isId
+              ? "RinAI masih mempelajari preferensi nutrisimu."
+              : "RinAI is still learning your nutrition preferences."}
           </p>
         </div>
       )}

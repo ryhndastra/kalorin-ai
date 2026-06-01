@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Trophy, CalendarCheck, Beef, Flame } from "lucide-react";
 
 const GoalItem = ({ icon: Icon, title, value }) => {
@@ -76,6 +77,8 @@ const getStreakLevel = (streak) => {
 };
 
 const NutritionScoreCard = ({ score, streaks }) => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   const streakLevel = getStreakLevel(streaks?.trackingStreak || 0);
 
   return (
@@ -92,7 +95,7 @@ const NutritionScoreCard = ({ score, streaks }) => {
 
             <div>
               <p className="text-white/70 text-sm font-medium tracking-[0.22em] uppercase">
-                Weekly Nutrition Score
+                {isId ? "Skor Nutrisi Mingguan" : "Weekly Nutrition Score"}
               </p>
               <h2 className="text-7xl font-bold text-white tracking-tight leading-none mt-2">
                 {score.overall}
@@ -122,7 +125,7 @@ const NutritionScoreCard = ({ score, streaks }) => {
                 <div>
                   <div className="flex items-center gap-3 mb-1">
                     <p className="text-white/55 text-xs uppercase tracking-[0.22em] font-semibold">
-                      Active Streak
+                      {isId ? "Streak Aktif" : "Active Streak"}
                     </p>
 
                     <div
@@ -133,7 +136,8 @@ const NutritionScoreCard = ({ score, streaks }) => {
                   </div>
 
                   <h3 className="text-white text-2xl font-bold leading-tight tracking-tight">
-                    {streaks.trackingStreak} Day Tracking Streak
+                    {streaks.trackingStreak}{" "}
+                    {isId ? "Hari Streak Tracking" : "Day Tracking Streak"}
                   </h3>
                 </div>
               </div>
@@ -145,13 +149,13 @@ const NutritionScoreCard = ({ score, streaks }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 w-full xl:w-auto xl:min-w-[520px]">
           <GoalItem
             icon={CalendarCheck}
-            title="Tracking Goal"
-            value={`${score.trackingDays}/7 days`}
+            title={isId ? "Target Tracking" : "Tracking Goal"}
+            value={`${score.trackingDays}/7 ${isId ? "hari" : "days"}`}
           />
           <GoalItem
             icon={Beef}
-            title="Protein Goal"
-            value={`${score.proteinGoalHitDays}/7 days`}
+            title={isId ? "Target Protein" : "Protein Goal"}
+            value={`${score.proteinGoalHitDays}/7 ${isId ? "hari" : "days"}`}
           />
         </div>
       </div>

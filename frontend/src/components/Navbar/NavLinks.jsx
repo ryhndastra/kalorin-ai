@@ -1,30 +1,32 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const menuItems = [
   {
-    name: "Home",
+    key: "home",
     path: "/home",
   },
   {
-    name: "Analyze",
+    key: "analyze",
     path: "/analyze",
   },
   {
-    name: "Meals",
+    key: "meals",
     path: "/meals",
   },
   {
-    name: "Track",
+    key: "track",
     path: "/track",
   },
   {
-    name: "Insights",
+    key: "insights",
     path: "/insights",
   },
 ];
 
 const NavLinks = ({ mobile = false, onNavigate }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleNavigation = (path) => {
@@ -44,7 +46,7 @@ const NavLinks = ({ mobile = false, onNavigate }) => {
       }
     >
       {menuItems.map((item) => (
-        <li key={item.name}>
+        <li key={item.key}>
           <NavLink
             to={item.path}
             onClick={(e) => {
@@ -65,7 +67,7 @@ const NavLinks = ({ mobile = false, onNavigate }) => {
                   : "text-gray-500 hover:text-gray-900 transition-colors"
             }
           >
-            {item.name}
+            {t(`nav.${item.key}`)}
           </NavLink>
         </li>
       ))}

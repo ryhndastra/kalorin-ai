@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { ScanLine } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,6 +15,8 @@ import TrackEmptyState from "../components/track/TrackEmptyState";
 import TrackSkeleton from "../components/skeletons/TrackSkeleton";
 
 const TrackPage = () => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   const { user } = useAuth();
   const { userData } = useUser();
   const navigate = useNavigate();
@@ -167,7 +170,7 @@ const TrackPage = () => {
                 onClick={() => navigate("/analyze")}
               >
                 <ScanLine size={22} />
-                <span>Scan & Log Meal</span>
+                <span>{isId ? "Scan & Catat Makanan" : "Scan & Log Meal"}</span>
               </button>
             </div>
           </motion.div>

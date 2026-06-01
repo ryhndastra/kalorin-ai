@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../common/LanguageSwitcher";
 
 export default function LandingNavbar() {
+  const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
@@ -39,17 +42,18 @@ export default function LandingNavbar() {
       </Link>
 
       <div className="flex items-center gap-4">
+        <LanguageSwitcher />
         <Link
           to="/analyze"
           className="text-sm font-semibold text-gray-600 hover:text-green-600 transition-colors"
         >
-          Guest
+          {t("common.guest")}
         </Link>
         <Link
           to="/login"
           className="bg-green-500 text-white text-sm font-semibold px-5 py-2 rounded-xl hover:bg-green-600 transition block"
         >
-          Masuk
+          {t("landing.navbarLogin")}
         </Link>
       </div>
     </nav>

@@ -3,7 +3,7 @@ const { getFoodPatternService } = require("./foodPatternService");
 const { requestBehavioralInsights } = require("../aiApiService");
 
 // GET AI BEHAVIORAL INSIGHTS
-const getBehavioralInsightsService = async (userId) => {
+const getBehavioralInsightsService = async (userId, language = "en") => {
   try {
     // GENERATE BEHAVIOR PATTERNS
     const behavioralPatterns = await generateNutritionPatterns(userId);
@@ -15,6 +15,7 @@ const getBehavioralInsightsService = async (userId) => {
     const payload = {
       ...behavioralPatterns,
       ...foodPatterns,
+      language,
     };
 
     // AI MICROSERVICE
@@ -31,8 +32,11 @@ const getBehavioralInsightsService = async (userId) => {
       insights: [
         {
           type: "info",
-          title: "Insights Unavailable",
-          message: "Behavioral insights could not be generated.",
+          title: language === "id" ? "Insight Tidak Tersedia" : "Insights Unavailable",
+          message:
+            language === "id"
+              ? "Insight perilaku belum bisa dibuat."
+              : "Behavioral insights could not be generated.",
         },
       ],
       source: "backend-fallback",

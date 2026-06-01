@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 const NutritionProgressCard = ({
   calories,
@@ -6,13 +7,18 @@ const NutritionProgressCard = ({
   progress,
   selectedDate,
 }) => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   const remainingCalories = Math.max(calorieGoal - calories, 0);
 
-  const formattedDate = new Date(selectedDate).toLocaleDateString("en-US", {
+  const formattedDate = new Date(selectedDate).toLocaleDateString(
+    isId ? "id-ID" : "en-US",
+    {
     weekday: "long",
     month: "long",
     day: "numeric",
-  });
+    },
+  );
 
   return (
     <div className="bg-[#22C55E] rounded-3xl p-6 shadow-sm mb-8 text-white">
@@ -46,7 +52,8 @@ const NutritionProgressCard = ({
       </div>
 
       <p className="text-sm font-medium opacity-90">
-        {Math.round(remainingCalories)} kcal remaining
+        {Math.round(remainingCalories)}{" "}
+        {isId ? "kkal tersisa" : "kcal remaining"}
       </p>
     </div>
   );

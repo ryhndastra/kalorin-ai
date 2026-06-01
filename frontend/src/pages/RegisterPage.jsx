@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   createUserWithEmailAndPassword,
   updateProfile,
@@ -10,8 +11,10 @@ import { auth, googleProvider } from "../config/firebase";
 import { syncUserToDb } from "../utils/authUtils";
 import AuthInput from "../components/Auth/AuthInput";
 import SocialAuth from "../components/Auth/SocialAuth";
+import LanguageSwitcher from "../components/common/LanguageSwitcher";
 
 const RegisterPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [fullName, setFullName] = useState("");
@@ -27,17 +30,17 @@ const RegisterPage = () => {
     const errors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!fullName.trim()) errors.fullName = "Full name is required.";
-    if (!email.trim()) errors.email = "Email is required.";
+    if (!fullName.trim()) errors.fullName = t("auth.validate.fullNameRequired");
+    if (!email.trim()) errors.email = t("auth.validate.emailRequired");
     else if (!emailRegex.test(email.trim()))
-      errors.email = "Email format is invalid.";
-    if (!password) errors.password = "Password is required.";
+      errors.email = t("auth.validate.emailInvalid");
+    if (!password) errors.password = t("auth.validate.passwordRequired");
     else if (password.length < 6)
-      errors.password = "Password must be at least 6 characters.";
+      errors.password = t("auth.validate.passwordMin");
     if (!confirmPassword)
-      errors.confirmPassword = "Confirm password is required.";
+      errors.confirmPassword = t("auth.validate.confirmPasswordRequired");
     else if (password !== confirmPassword)
-      errors.confirmPassword = "Password and confirm password do not match.";
+      errors.confirmPassword = t("auth.validate.passwordMismatch");
 
     return errors;
   };
@@ -50,7 +53,7 @@ const RegisterPage = () => {
     const errors = validateRegisterForm();
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
-      setErrorMsg("Please correct the highlighted fields.");
+      setErrorMsg(t("auth.validate.fixFields"));
       return;
     }
 
@@ -77,9 +80,9 @@ const RegisterPage = () => {
     } catch (error) {
       console.error("Error Register:", error);
       if (error.code === "auth/email-already-in-use") {
-        setErrorMsg("Email sudah terdaftar. Silakan login.");
+        setErrorMsg(t("auth.register.emailUsed"));
       } else {
-        setErrorMsg("Gagal mendaftar. Silakan coba lagi.");
+        setErrorMsg(t("auth.register.registerFailed"));
       }
     } finally {
       setIsLoading(false);
@@ -99,14 +102,17 @@ const RegisterPage = () => {
       navigate("/analyze");
     } catch (error) {
       console.error("Error Google Auth:", error);
-      setErrorMsg("Gagal autentikasi dengan Google.");
+      setErrorMsg(t("auth.googleFailed"));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-[#dcfce7] flex flex-col items-center justify-center p-4 font-sans py-10">
+    <div className="relative min-h-screen bg-gradient-to-br from-white to-[#dcfce7] flex flex-col items-center justify-center p-4 font-sans py-10">
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher />
+      </div>
       <div className="mb-6 text-center">
         <img
           src="images/logo/kalorinLogo.png"
@@ -118,10 +124,10 @@ const RegisterPage = () => {
       <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] w-full max-w-md p-8">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Create an Account
+            {t("auth.register.title")}
           </h2>
           <p className="text-sm text-gray-500">
-            Join us to start tracking your personalized nutrition plan
+            {t("auth.register.subtitle")}
           </p>
         </div>
 
@@ -133,7 +139,7 @@ const RegisterPage = () => {
 
         <form onSubmit={handleEmailRegister} noValidate className="space-y-4">
           <AuthInput
-            label="Full Name"
+            label={t("auth.fullName")}
             type="text"
             value={fullName}
             onChange={(e) => {
@@ -142,12 +148,12 @@ const RegisterPage = () => {
                 setFieldErrors((prev) => ({ ...prev, fullName: "" }));
               }
             }}
-            placeholder="Enter your full name"
+            placeholder={t("auth.enterFullName")}
             error={fieldErrors.fullName}
           />
 
           <AuthInput
-            label="Email"
+            label={t("auth.email")}
             type="email"
             value={email}
             onChange={(e) => {
@@ -156,12 +162,12 @@ const RegisterPage = () => {
                 setFieldErrors((prev) => ({ ...prev, email: "" }));
               }
             }}
-            placeholder="Enter Email"
+            placeholder={t("auth.enterEmail")}
             error={fieldErrors.email}
           />
 
           <AuthInput
-            label="Password"
+            label={t("auth.password")}
             type="password"
             value={password}
             onChange={(e) => {
@@ -170,12 +176,12 @@ const RegisterPage = () => {
                 setFieldErrors((prev) => ({ ...prev, password: "" }));
               }
             }}
-            placeholder="Create Password"
+            placeholder={t("auth.createPassword")}
             error={fieldErrors.password}
           />
 
           <AuthInput
-            label="Confirm Password"
+            label={t("auth.confirmPassword")}
             type="password"
             value={confirmPassword}
             onChange={(e) => {
@@ -184,7 +190,7 @@ const RegisterPage = () => {
                 setFieldErrors((prev) => ({ ...prev, confirmPassword: "" }));
               }
             }}
-            placeholder="Repeat Password"
+            placeholder={t("auth.repeatPassword")}
             error={fieldErrors.confirmPassword}
           />
 
@@ -193,19 +199,19 @@ const RegisterPage = () => {
             disabled={isLoading}
             className="w-full bg-green-500 text-white font-bold py-3.5 rounded-xl hover:bg-green-600 transition-colors shadow-sm mt-4 disabled:bg-green-300"
           >
-            {isLoading ? "Creating Account..." : "Sign Up"}
+            {isLoading ? t("auth.register.creating") : t("common.signUp")}
           </button>
         </form>
 
         <SocialAuth onGoogleClick={handleGoogleLogin} isLoading={isLoading} />
 
         <p className="text-center text-sm text-gray-600">
-          Already have an account?{" "}
+          {t("auth.register.haveAccount")}{" "}
           <button
             onClick={() => navigate("/login")}
             className="text-green-500 font-bold hover:text-green-600"
           >
-            Sign In
+            {t("common.signIn")}
           </button>
         </p>
       </div>
@@ -215,7 +221,7 @@ const RegisterPage = () => {
           onClick={() => navigate("/analyze")}
           className="flex items-center gap-2 text-green-600 font-medium hover:text-green-700 transition-colors"
         >
-          Continue as Guest <ArrowRight size={16} />
+          {t("common.continueAsGuest")} <ArrowRight size={16} />
         </button>
       </div>
     </div>

@@ -19,6 +19,12 @@ const {
 } = require("../services/insights/foodPatternService");
 const { getStreakService } = require("../services/insights/streakService");
 
+const resolveLanguage = (req) => {
+  const rawLang =
+    req.headers["x-app-language"] || req.headers["accept-language"] || "en";
+  return String(rawLang).toLowerCase().startsWith("id") ? "id" : "en";
+};
+
 // GET WEEKLY SUMMARY
 const getWeeklySummary = async (req, res, next) => {
   try {
@@ -72,6 +78,7 @@ const getWeeklyTrends = async (req, res, next) => {
 const getBehavioralInsights = async (req, res, next) => {
   try {
     const userId = req.user?.uid;
+    const language = resolveLanguage(req);
 
     // VALIDATION
     if (!userId) {
@@ -81,7 +88,7 @@ const getBehavioralInsights = async (req, res, next) => {
       });
     }
 
-    const result = await getBehavioralInsightsService(userId);
+    const result = await getBehavioralInsightsService(userId, language);
 
     res.json({
       success: true,
@@ -119,6 +126,7 @@ const getWeeklyComparison = async (req, res, next) => {
 const getWeeklyScore = async (req, res, next) => {
   try {
     const userId = req.user?.uid;
+    const language = resolveLanguage(req);
 
     // VALIDATION
     if (!userId) {
@@ -128,7 +136,7 @@ const getWeeklyScore = async (req, res, next) => {
       });
     }
 
-    const score = await getWeeklyScoreService(userId);
+    const score = await getWeeklyScoreService(userId, language);
 
     res.json({
       success: true,
@@ -214,6 +222,7 @@ const getStreaks = async (req, res, next) => {
 const getInsightsDashboard = async (req, res, next) => {
   try {
     const userId = req.user?.uid;
+    const language = resolveLanguage(req);
 
     if (!userId) {
       return res.status(400).json({
@@ -225,7 +234,7 @@ const getInsightsDashboard = async (req, res, next) => {
     const [trends, comparison, score, streaks] = await Promise.all([
       getWeeklyTrendsService(userId),
       getWeeklyComparisonService(userId),
-      getWeeklyScoreService(userId),
+      getWeeklyScoreService(userId, language),
       getStreakService(userId),
     ]);
 

@@ -2,12 +2,15 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { useTranslation } from "react-i18next";
 import { auth, googleProvider } from "../config/firebase";
 import { syncUserToDb } from "../utils/authUtils";
 import AuthInput from "../components/Auth/AuthInput";
 import SocialAuth from "../components/Auth/SocialAuth";
+import LanguageSwitcher from "../components/common/LanguageSwitcher";
 
 const LoginPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,11 +22,11 @@ const LoginPage = () => {
     const errors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!email.trim()) errors.email = "Email is required.";
+    if (!email.trim()) errors.email = t("auth.validate.emailRequired");
     else if (!emailRegex.test(email.trim()))
-      errors.email = "Email format is invalid.";
+      errors.email = t("auth.validate.emailInvalid");
 
-    if (!password) errors.password = "Password is required.";
+    if (!password) errors.password = t("auth.validate.passwordRequired");
     return errors;
   };
 
@@ -35,7 +38,7 @@ const LoginPage = () => {
     const errors = validateLoginForm();
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
-      setErrorMsg("Please correct the highlighted fields.");
+      setErrorMsg(t("auth.validate.fixFields"));
       return;
     }
 
@@ -54,7 +57,7 @@ const LoginPage = () => {
       navigate("/analyze");
     } catch (error) {
       console.error("Login Email Gagal:", error);
-      setErrorMsg("Email atau password salah. Silakan coba lagi.");
+      setErrorMsg(t("auth.login.invalidCreds"));
     } finally {
       setIsLoading(false);
     }
@@ -73,14 +76,17 @@ const LoginPage = () => {
       navigate("/analyze");
     } catch (error) {
       console.error("Login Google Gagal:", error);
-      setErrorMsg("Gagal login dengan Google.");
+      setErrorMsg(t("auth.googleFailed"));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-[#dcfce7] flex flex-col items-center justify-center p-4 font-sans py-10">
+    <div className="relative min-h-screen bg-gradient-to-br from-white to-[#dcfce7] flex flex-col items-center justify-center p-4 font-sans py-10">
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher />
+      </div>
       <div className="mb-8 text-center">
         <img
           src="images/logo/kalorinLogo.png"
@@ -92,10 +98,10 @@ const LoginPage = () => {
       <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] w-full max-w-md p-8">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Welcome back!
+            {t("auth.login.title")}
           </h2>
           <p className="text-sm text-gray-500">
-            Sign in to access your personalized nutrition plan
+            {t("auth.login.subtitle")}
           </p>
         </div>
 
@@ -107,7 +113,7 @@ const LoginPage = () => {
 
         <form onSubmit={handleEmailLogin} noValidate className="space-y-5">
           <AuthInput
-            label="Email"
+            label={t("auth.email")}
             type="email"
             value={email}
             onChange={(e) => {
@@ -116,12 +122,12 @@ const LoginPage = () => {
                 setFieldErrors((prev) => ({ ...prev, email: "" }));
               }
             }}
-            placeholder="Enter Email"
+            placeholder={t("auth.enterEmail")}
             error={fieldErrors.email}
           />
 
           <AuthInput
-            label="Password"
+            label={t("auth.password")}
             type="password"
             value={password}
             onChange={(e) => {
@@ -130,8 +136,8 @@ const LoginPage = () => {
                 setFieldErrors((prev) => ({ ...prev, password: "" }));
               }
             }}
-            placeholder="Enter Password"
-            rightLabel="Forgot Password?"
+            placeholder={t("auth.enterPassword")}
+            rightLabel={t("auth.forgotPassword")}
             error={fieldErrors.password}
           />
 
@@ -140,32 +146,32 @@ const LoginPage = () => {
             disabled={isLoading}
             className="w-full bg-green-500 text-white font-bold py-3.5 rounded-xl hover:bg-green-600 transition-colors shadow-sm mt-2 disabled:bg-green-300"
           >
-            {isLoading ? "Signing in..." : "Sign In"}
+            {isLoading ? t("auth.login.signingIn") : t("common.signIn")}
           </button>
         </form>
 
         <SocialAuth onGoogleClick={handleGoogleLogin} isLoading={isLoading} />
 
         <p className="text-center text-sm text-gray-600 mt-6">
-          Don't have an account?{" "}
+          {t("auth.login.noAccount")}{" "}
           <button
             onClick={() => navigate("/register")}
             className="text-green-500 font-bold hover:text-green-600"
           >
-            Sign Up
+            {t("common.signUp")}
           </button>
         </p>
       </div>
 
       <div className="mt-8 text-center flex flex-col items-center gap-2">
-        <p className="text-sm text-gray-500">
-          Just want to try the food scanner?
-        </p>
+          <p className="text-sm text-gray-500">
+          {t("auth.login.scannerTry")}
+          </p>
         <button
           onClick={() => navigate("/analyze")}
           className="flex items-center gap-2 text-green-600 font-medium hover:text-green-700 transition-colors"
         >
-          Continue as Guest <ArrowRight size={16} />
+          {t("common.continueAsGuest")} <ArrowRight size={16} />
         </button>
       </div>
     </div>

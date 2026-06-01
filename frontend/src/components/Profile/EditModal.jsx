@@ -1,7 +1,11 @@
 import React from "react";
-import { X, Loader2 } from "lucide-react"; 
+import { useTranslation } from "react-i18next";
+import { X, Loader2 } from "lucide-react";
 
 const EditModal = ({ isOpen, onClose, title, children, onSave, isLoading }) => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
+
   if (!isOpen) return null;
 
   return (
@@ -33,7 +37,7 @@ const EditModal = ({ isOpen, onClose, title, children, onSave, isLoading }) => {
             disabled={isLoading}
             className="flex-1 py-3 px-4 rounded-2xl font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 transition-all disabled:opacity-50"
           >
-            Cancel
+            {isId ? "Batal" : "Cancel"}
           </button>
           <button
             onClick={onSave}
@@ -43,10 +47,10 @@ const EditModal = ({ isOpen, onClose, title, children, onSave, isLoading }) => {
             {isLoading ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
-                Saving...
+                {isId ? "Menyimpan..." : "Saving..."}
               </>
             ) : (
-              "Save Changes"
+              isId ? "Simpan Perubahan" : "Save Changes"
             )}
           </button>
         </div>

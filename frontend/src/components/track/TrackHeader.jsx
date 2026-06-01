@@ -1,11 +1,14 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { ChevronDown } from "lucide-react";
 
 const TrackHeader = ({ selectedDate, setSelectedDate }) => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   return (
     <div className="mb-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-3">
-        Tracking & History
+        {isId ? "Pelacakan & Riwayat" : "Tracking & History"}
       </h1>
 
       <div className="relative inline-flex items-center">

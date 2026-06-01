@@ -5,7 +5,8 @@ const {
 } = require("../../utils/dateUtils");
 
 // GET WEEKLY SCORE
-const getWeeklyScoreService = async (userId) => {
+const getWeeklyScoreService = async (userId, language = "en") => {
+  const isId = String(language).toLowerCase().startsWith("id");
   const { startOfRange, endOfRange } = getJakartaRollingRange(7);
 
   // USER
@@ -36,7 +37,9 @@ const getWeeklyScoreService = async (userId) => {
       trackingDays: 0,
       proteinGoalHitDays: 0,
       calorieGoalHitDays: 0,
-      message: "Start tracking meals to build your nutrition score.",
+      message: isId
+        ? "Mulai catat meal untuk membangun skor nutrisimu."
+        : "Start tracking meals to build your nutrition score.",
     };
   }
 
@@ -102,16 +105,26 @@ const getWeeklyScoreService = async (userId) => {
     consistencyScore * 0.4 + proteinScore * 0.35 + calorieScore * 0.25;
 
   // MESSAGE
-  let message = "Good nutrition consistency this week.";
+  let message = isId
+    ? "Konsistensi nutrisimu minggu ini sudah baik."
+    : "Good nutrition consistency this week.";
 
   if (overall >= 85) {
-    message = "Excellent nutrition consistency this week.";
+    message = isId
+      ? "Konsistensi nutrisimu minggu ini sangat bagus."
+      : "Excellent nutrition consistency this week.";
   } else if (overall >= 70) {
-    message = "You're maintaining a solid nutrition routine.";
+    message = isId
+      ? "Kamu berhasil menjaga rutinitas nutrisi yang solid."
+      : "You're maintaining a solid nutrition routine.";
   } else if (overall >= 50) {
-    message = "Your nutrition habits are improving steadily.";
+    message = isId
+      ? "Kebiasaan nutrisimu mulai membaik secara stabil."
+      : "Your nutrition habits are improving steadily.";
   } else {
-    message = "Try tracking meals more consistently to improve your score.";
+    message = isId
+      ? "Coba catat meal lebih konsisten untuk menaikkan skormu."
+      : "Try tracking meals more consistently to improve your score.";
   }
 
   return {

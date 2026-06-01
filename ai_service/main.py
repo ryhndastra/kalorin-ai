@@ -132,10 +132,12 @@ class InferenceRequest(BaseModel):
     food_carb: float
     food_cluster: int
     food_name: str
+    language: str = "en"
 
 class DailyInsightRequest(BaseModel):
     user_status: str
     macro_context: str
+    language: str = "en"
 
 class BehavioralInsightRequest(BaseModel):
     trackingConsistency: str
@@ -155,14 +157,21 @@ class BehavioralInsightRequest(BaseModel):
     weekendCalories: int
     weekdayCalories: int
     lateNightEatingCount: int
+    language: str = "en"
+
+def norm_lang(value: str | None) -> str:
+    return "id" if str(value or "en").lower().startswith("id") else "en"
 
 # HELPER: GENERATE EXPLANATION
 # Hanya panggil Gemini kalau cache miss
-async def generate_explanation(food_name: str, user_status: str, is_recommended: bool) -> str:
+async def generate_explanation(food_name: str, user_status: str, is_recommended: bool, language: str = "en") -> str:
+    language = norm_lang(language)
     if not is_recommended:
-        return f"RinAI di sini! Makanan ini kurang pas buat kondisi {user_status} kamu sekarang, coba cari alternatif lain ya!"
+        if language == "id":
+            return f"RinAI di sini! Makanan ini kurang pas buat kondisi {user_status} kamu sekarang, coba cari alternatif lain ya!"
+        return f"RinAI here. This food is less suitable for your current {user_status} condition, try another option."
 
-    cache_key = f"{food_name.lower()}|{user_status.lower()}"
+    cache_key = f"{language}|{food_name.lower()}|{user_status.lower()}"
 
     # Cache hit → ga perlu panggil Gemini
     cached = redis_get(cache_key)
@@ -174,17 +183,21 @@ async def generate_explanation(food_name: str, user_status: str, is_recommended:
     # Cache miss → panggil Gemini
     try:
         prompt = (
-            f"Sapa user sebagai 'RinAI'. "
-            f"Berperanlah sebagai ahli gizi digital untuk aplikasi KaloriN AI. "
-            f"Berikan 1 kalimat penjelasan singkat dan ramah kenapa '{food_name}' "
-            f"sangat cocok direkomendasikan untuk seseorang dengan status kesehatan '{user_status}'. "
-            f"Fokus pada manfaat gizi makronya."
+            f"Address the user as 'RinAI'. "
+            f"You are a digital nutrition expert for KaloriN AI. "
+            f"Write exactly 1 short friendly sentence on why '{food_name}' is a great recommendation "
+            f"for someone with health status '{user_status}'. Focus on macro benefits. "
+            f"Output language: {'Bahasa Indonesia' if language == 'id' else 'English'}."
         )
         text = await generate_gemini_text(prompt)
         redis_setex(cache_key,86400,text)  # simpan ke cache
         return text
     except Exception:
-        fallback = "Makanan ini direkomendasikan karena komposisi nutrisinya sangat mendukung profil kesehatan kamu."
+        fallback = (
+            "Makanan ini direkomendasikan karena komposisi nutrisinya sangat mendukung profil kesehatan kamu."
+            if language == "id"
+            else "This food is recommended because its nutrition profile strongly supports your health needs."
+        )
         redis_setex(cache_key,86400,fallback)  # simpan fallback ke cache juga
         return fallback
 
@@ -222,11 +235,16 @@ async def get_recommendation(data: InferenceRequest):
     try:
         score_percent, is_recommended = predict_score(data)
 
+        lang = norm_lang(data.language)
         return {
             "food_name": data.food_name,
             "match_score_percent": score_percent,
             "is_recommended": is_recommended,
-            "message": "Direkomendasikan" if is_recommended else "Ditolak (Tidak sesuai target nutrisi)",
+            "message": (
+                "Direkomendasikan" if is_recommended else "Ditolak (Tidak sesuai target nutrisi)"
+            ) if lang == "id" else (
+                "Recommended" if is_recommended else "Not recommended (Not aligned with your nutrition target)"
+            ),
             # Tidak ada explanation di sini — hemat Gemini call
         }
     except Exception as e:
@@ -238,13 +256,18 @@ async def get_recommendation(data: InferenceRequest):
 async def get_recommendation_with_explanation(data: InferenceRequest):
     try:
         score_percent, is_recommended = predict_score(data)
-        explanation = await generate_explanation(data.food_name, data.user_status, is_recommended)
+        lang = norm_lang(data.language)
+        explanation = await generate_explanation(data.food_name, data.user_status, is_recommended, lang)
 
         return {
             "food_name": data.food_name,
             "match_score_percent": score_percent,
             "is_recommended": is_recommended,
-            "message": "Direkomendasikan" if is_recommended else "Ditolak (Tidak sesuai target nutrisi)",
+            "message": (
+                "Direkomendasikan" if is_recommended else "Ditolak (Tidak sesuai target nutrisi)"
+            ) if lang == "id" else (
+                "Recommended" if is_recommended else "Not recommended (Not aligned with your nutrition target)"
+            ),
             "explanation": explanation,
         }
     except Exception as e:
@@ -256,24 +279,26 @@ insight_cache: dict[str, str] = {}
 behavioral_cache: dict[str, list] = {}
 
 def build_behavioral_fallback(data: BehavioralInsightRequest) -> list[dict]:
+    lang = norm_lang(data.language)
+    id_lang = lang == "id"
     insights = []
 
     if data.trackingDays <= 0:
         return [
             {
                 "type": "info",
-                "title": "Data Belum Ada",
-                "message": "Belum ada pola makan yang cukup untuk dianalisis minggu ini."
+                "title": "Data Belum Ada" if id_lang else "No Data Yet",
+                "message": "Belum ada pola makan yang cukup untuk dianalisis minggu ini." if id_lang else "Not enough meal pattern data to analyze this week."
             },
             {
                 "type": "tip",
-                "title": "Mulai Tracking",
-                "message": "Catat beberapa meal agar pola kalori dan protein mulai terlihat."
+                "title": "Mulai Tracking" if id_lang else "Start Tracking",
+                "message": "Catat beberapa meal agar pola kalori dan protein mulai terlihat." if id_lang else "Log a few meals so calorie and protein patterns become visible."
             },
             {
                 "type": "info",
-                "title": "Baseline Kosong",
-                "message": "Insight akan lebih akurat setelah ada beberapa hari data."
+                "title": "Baseline Kosong" if id_lang else "No Baseline",
+                "message": "Insight akan lebih akurat setelah ada beberapa hari data." if id_lang else "Insights become more accurate after a few days of data."
             }
         ]
 
@@ -424,8 +449,13 @@ def parse_gemini_json_array(raw: str) -> list:
 
 @app.post("/api/daily-insight")
 async def get_daily_insight(data: DailyInsightRequest):
-    fallback = data.macro_context or "Stay consistent with your nutrition goals today!"
-    cache_key = f"daily-insight|{data.user_status.lower()}|{data.macro_context.lower()}"
+    lang = norm_lang(data.language)
+    fallback = data.macro_context or (
+        "Tetap konsisten dengan target nutrisi kamu hari ini!"
+        if lang == "id"
+        else "Stay consistent with your nutrition goals today!"
+    )
+    cache_key = f"daily-insight|{lang}|{data.user_status.lower()}|{data.macro_context.lower()}"
 
     cached = redis_get(cache_key)
     if cached:
@@ -436,11 +466,10 @@ async def get_daily_insight(data: DailyInsightRequest):
 
     try:
         prompt = (
-            f"Kamu adalah AI Gizi di aplikasi. User dengan status {data.user_status} "
-            f"saat ini kondisinya: {data.macro_context}. "
-            f"Berikan 1 kalimat insight harian yang menyemangati dan spesifik (misal menyarankan jenis makanan). "
-            f"Gunakan bahasa Inggris yang natural seperti contoh ini: "
-            f"'You need 38g more protein today. Try adding a chicken breast!'"
+            f"You are a nutrition AI assistant in an app. User status: {data.user_status}. "
+            f"Current context: {data.macro_context}. "
+            f"Write exactly 1 practical, motivating daily insight sentence. "
+            f"Output language: {'Bahasa Indonesia' if lang == 'id' else 'English'}."
         )
         text = await generate_gemini_text(prompt)
         redis_setex(cache_key,43200,text)
@@ -454,8 +483,9 @@ async def get_daily_insight(data: DailyInsightRequest):
 # ENDPOINT: /api/behavioral-insights
 @app.post("/api/behavioral-insights")
 async def get_behavioral_insights(data: BehavioralInsightRequest):
+    lang = norm_lang(data.language)
     ai_payload = build_behavioral_ai_payload(data)
-    cache_key = f"behavioral-insights:v3|{json.dumps(ai_payload, sort_keys=True)}"
+    cache_key = f"behavioral-insights:v3|{lang}|{json.dumps(ai_payload, sort_keys=True)}"
     try:
         # CACHE HIT
         cached = redis_get(cache_key)
@@ -472,7 +502,7 @@ async def get_behavioral_insights(data: BehavioralInsightRequest):
         prompt = (
             "Return ONLY minified valid JSON array with exactly 3 items. "
             'Each item: {"type":"warning|success|info|tip","title":"max 3 kata","message":"max 14 kata"}. '
-            "Bahasa Indonesia natural. No markdown. Use double quotes. "
+            f"Output language: {'Bahasa Indonesia' if lang == 'id' else 'English'}. No markdown. Use double quotes. "
             "At least one item about dominant_foods if present. Data="
             f"{compact_payload}"
         )

@@ -1,34 +1,37 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 import { Camera, Search, Plus, BarChart2 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
 
 const QuickActions = () => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   const navigate = useNavigate();
 
   const actions = [
     {
       id: 1,
-      label: "Scan Food",
+      label: isId ? "Scan Makanan" : "Scan Food",
       icon: Camera,
       path: "/analyze?tab=scan",
     },
     {
       id: 2,
-      label: "Search",
+      label: isId ? "Cari" : "Search",
       icon: Search,
       path: "/analyze?tab=search",
     },
     {
       id: 3,
-      label: "Add Meal",
+      label: isId ? "Tambah Meal" : "Add Meal",
       icon: Plus,
       path: "/meals",
     },
     {
       id: 4,
-      label: "Insight",
+      label: isId ? "Insight" : "Insight",
       icon: BarChart2,
       path: "/insights",
     },
@@ -36,7 +39,9 @@ const QuickActions = () => {
 
   return (
     <div className="max-w-5xl mx-auto px-6 mt-8">
-      <h3 className="text-gray-800 font-bold mb-4">Quick Action</h3>
+      <h3 className="text-gray-800 font-bold mb-4">
+        {isId ? "Aksi Cepat" : "Quick Action"}
+      </h3>
 
       <div className="bg-white rounded-3xl p-6 shadow-sm flex justify-between items-center border border-gray-50">
         {actions.map((action) => (

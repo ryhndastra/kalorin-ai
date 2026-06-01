@@ -1,31 +1,34 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Flame, Beef, Utensils, Target } from "lucide-react";
 
 const InsightsSummaryCards = ({ summary }) => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   const cards = [
     {
-      label: "Avg Calories",
+      label: isId ? "Rata-rata Kalori" : "Avg Calories",
       value: `${summary.averageCalories} kcal`,
       icon: Flame,
       bg: "bg-orange-50",
       color: "text-orange-500",
     },
     {
-      label: "Avg Protein",
+      label: isId ? "Rata-rata Protein" : "Avg Protein",
       value: `${summary.averageProtein}g`,
       icon: Beef,
       bg: "bg-blue-50",
       color: "text-blue-500",
     },
     {
-      label: "Meals Logged",
+      label: isId ? "Meal Tercatat" : "Meals Logged",
       value: summary.totalMeals,
       icon: Utensils,
       bg: "bg-green-50",
       color: "text-green-500",
     },
     {
-      label: "Goal Completion",
+      label: isId ? "Pencapaian Target" : "Goal Completion",
       value: `${summary.goalCompletionRate}%`,
       icon: Target,
       bg: "bg-purple-50",

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Flame,
   Beef,
@@ -35,7 +36,45 @@ const comparisonConfig = {
 };
 
 const WeeklyComparisonCard = ({ type, percentage, hasPreviousData }) => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   const config = comparisonConfig[type] || comparisonConfig.calories;
+  const localizedConfig = {
+    title:
+      type === "calories"
+        ? isId
+          ? "Kalori"
+          : "Calories"
+        : type === "protein"
+          ? "Protein"
+          : isId
+            ? "Konsistensi Tracking"
+            : "Tracking Consistency",
+    positiveText:
+      type === "calories"
+        ? isId
+          ? "Asupan kalori lebih stabil dibanding minggu lalu."
+          : "Calorie intake became more stable than last week."
+        : type === "protein"
+          ? isId
+            ? "Asupan protein meningkat dibanding minggu lalu."
+            : "Protein intake improved compared to last week."
+          : isId
+            ? "Kamu lebih konsisten mencatat meal minggu ini."
+            : "You tracked meals more consistently this week.",
+    negativeText:
+      type === "calories"
+        ? isId
+          ? "Konsistensi kalori menurun dibanding minggu lalu."
+          : "Calorie consistency dropped compared to last week."
+        : type === "protein"
+          ? isId
+            ? "Konsistensi asupan protein menurun minggu ini."
+            : "Protein intake consistency decreased this week."
+          : isId
+            ? "Konsistensi tracking lebih rendah dari minggu lalu."
+            : "Tracking consistency was lower than last week.",
+  };
   const Icon = config.icon;
   const positive = percentage >= 0;
   return (
@@ -48,12 +87,14 @@ const WeeklyComparisonCard = ({ type, percentage, hasPreviousData }) => {
           >
             <Icon className={config.color} size={24} />
           </div>
-          <p className="text-sm text-gray-500 font-medium">{config.title}</p>
+          <p className="text-sm text-gray-500 font-medium">
+            {localizedConfig.title}
+          </p>
         </div>
 
         {!hasPreviousData && (
           <div className="px-3 py-1 rounded-full bg-gray-100 text-gray-500 text-[11px] font-semibold">
-            Locked
+            {isId ? "Terkunci" : "Locked"}
           </div>
         )}
       </div>
@@ -86,20 +127,23 @@ const WeeklyComparisonCard = ({ type, percentage, hasPreviousData }) => {
 
           {/* LABEL */}
           <p className="text-gray-600 leading-relaxed">
-            {positive ? config.positiveText : config.negativeText}
+            {positive
+              ? localizedConfig.positiveText
+              : localizedConfig.negativeText}
           </p>
           <div className="mt-5 text-sm text-gray-400">
-            Compared to previous week
+            {isId ? "Dibanding minggu sebelumnya" : "Compared to previous week"}
           </div>
         </>
       ) : (
         <>
           <h3 className="text-2xl font-bold text-gray-900 mb-3">
-            Build Your Baseline
+            {isId ? "Bangun Baseline-mu" : "Build Your Baseline"}
           </h3>
           <p className="text-gray-500 leading-relaxed">
-            Track another week to unlock personalized comparison insights and
-            weekly progress trends.
+            {isId
+              ? "Lacak satu minggu lagi untuk membuka insight perbandingan personal dan tren progres mingguan."
+              : "Track another week to unlock personalized comparison insights and weekly progress trends."}
           </p>
         </>
       )}

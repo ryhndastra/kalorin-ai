@@ -32,19 +32,26 @@ export const validateProfileInput = ({
   height,
   isPregnant,
   isBreastfeeding,
+  language = "id",
 }) => {
+  const isId = String(language).toLowerCase().startsWith("id");
+
   if (!birthdate || !gender || !activityLevel || !weight || !height) {
-    return "Tanggal lahir, gender, aktivitas, berat, dan tinggi wajib diisi.";
+    return isId
+      ? "Tanggal lahir, gender, aktivitas, berat, dan tinggi wajib diisi."
+      : "Birthdate, gender, activity, weight, and height are required.";
   }
 
   const birthDateObj = new Date(birthdate);
   if (Number.isNaN(birthDateObj.getTime())) {
-    return "Tanggal lahir tidak valid.";
+    return isId ? "Tanggal lahir tidak valid." : "Birthdate is invalid.";
   }
 
   const now = new Date();
   if (birthDateObj > now) {
-    return "Tanggal lahir tidak boleh di masa depan.";
+    return isId
+      ? "Tanggal lahir tidak boleh di masa depan."
+      : "Birthdate cannot be in the future.";
   }
 
   const age = calculateAgeFromBirthdate(birthdate);
@@ -53,19 +60,27 @@ export const validateProfileInput = ({
     age < PROFILE_LIMITS.minAge ||
     age > PROFILE_LIMITS.maxAge
   ) {
-    return `Umur harus antara ${PROFILE_LIMITS.minAge}-${PROFILE_LIMITS.maxAge} tahun.`;
+    return isId
+      ? `Umur harus antara ${PROFILE_LIMITS.minAge}-${PROFILE_LIMITS.maxAge} tahun.`
+      : `Age must be between ${PROFILE_LIMITS.minAge}-${PROFILE_LIMITS.maxAge} years.`;
   }
 
   if (weight < PROFILE_LIMITS.minWeight || weight > PROFILE_LIMITS.maxWeight) {
-    return `Berat badan harus antara ${PROFILE_LIMITS.minWeight}-${PROFILE_LIMITS.maxWeight} kg.`;
+    return isId
+      ? `Berat badan harus antara ${PROFILE_LIMITS.minWeight}-${PROFILE_LIMITS.maxWeight} kg.`
+      : `Weight must be between ${PROFILE_LIMITS.minWeight}-${PROFILE_LIMITS.maxWeight} kg.`;
   }
 
   if (height < PROFILE_LIMITS.minHeight || height > PROFILE_LIMITS.maxHeight) {
-    return `Tinggi badan harus antara ${PROFILE_LIMITS.minHeight}-${PROFILE_LIMITS.maxHeight} cm.`;
+    return isId
+      ? `Tinggi badan harus antara ${PROFILE_LIMITS.minHeight}-${PROFILE_LIMITS.maxHeight} cm.`
+      : `Height must be between ${PROFILE_LIMITS.minHeight}-${PROFILE_LIMITS.maxHeight} cm.`;
   }
 
   if (gender === "male" && (isPregnant || isBreastfeeding)) {
-    return "Untuk gender male, opsi pregnant dan breastfeeding tidak boleh dipilih.";
+    return isId
+      ? "Untuk gender laki-laki, opsi hamil dan menyusui tidak boleh dipilih."
+      : "Pregnant and breastfeeding options cannot be selected for male gender.";
   }
 
   return null;

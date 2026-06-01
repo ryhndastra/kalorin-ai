@@ -1,8 +1,10 @@
 import React from "react";
 import { Smartphone, Apple } from "lucide-react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 const SocialAuth = ({ onGoogleClick, isLoading }) => {
+  const { t } = useTranslation();
   return (
     <>
       <div className="relative my-8">
@@ -10,7 +12,9 @@ const SocialAuth = ({ onGoogleClick, isLoading }) => {
           <div className="w-full border-t border-gray-200"></div>
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-4 bg-white text-gray-400">or continue with</span>
+          <span className="px-4 bg-white text-gray-400">
+            {t("auth.orContinueWith")}
+          </span>
         </div>
       </div>
 
@@ -45,7 +49,7 @@ const SocialAuth = ({ onGoogleClick, isLoading }) => {
         {/* HP */}
         <button
           type="button"
-          onClick={() => toast("Fitur Login via No. HP segera hadir.")}
+          onClick={() => toast(t("auth.phoneComingSoon"))}
           className="flex-1 flex items-center justify-center py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-gray-700"
         >
           <Smartphone size={20} />
@@ -54,7 +58,7 @@ const SocialAuth = ({ onGoogleClick, isLoading }) => {
         {/* Apple */}
         <button
           type="button"
-          onClick={() => toast("Fitur Login via Apple segera hadir.")}
+          onClick={() => toast(t("auth.appleComingSoon"))}
           className="flex-1 flex items-center justify-center py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-gray-900"
         >
           <Apple size={20} fill="currentColor" />
