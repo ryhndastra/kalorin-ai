@@ -15,11 +15,18 @@ const Navbar = ({ user, loading, userData }) => {
   const [accountOpen, setAccountOpen] = useState(false);
   const navigate = useNavigate();
   const resolvedUserData = userData || contextUserData;
-  const displayName =
-    resolvedUserData?.fullName ||
-    auth.currentUser?.displayName ||
-    user?.displayName ||
-    "User";
+  const isPlaceholderName = (value) => {
+    if (typeof value !== "string") return true;
+    const normalized = value.trim().toLowerCase();
+    return normalized.length === 0 || normalized === "user";
+  };
+  const displayName = !isPlaceholderName(resolvedUserData?.fullName)
+    ? resolvedUserData?.fullName
+    : !isPlaceholderName(auth.currentUser?.displayName)
+      ? auth.currentUser?.displayName
+      : !isPlaceholderName(user?.displayName)
+        ? user?.displayName
+        : "User";
   const avatarSrc =
     resolvedUserData?.photoURL ||
     user?.photoURL ||
@@ -28,8 +35,14 @@ const Navbar = ({ user, loading, userData }) => {
 
   // HIDE ON SCROLL
   useEffect(() => {
-    let scrollTimeout;
+    let scrollTimeout = null;
+
     const handleScroll = () => {
+      if (window.scrollY <= 8) {
+        setIsVisible(true);
+        return;
+      }
+
       setIsVisible(false);
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => {
@@ -46,6 +59,7 @@ const Navbar = ({ user, loading, userData }) => {
 
   // CLOSE MENU
   const closeMobileMenu = () => {
+    setIsVisible(true);
     setMobileOpen(false);
     setAccountOpen(false);
   };
@@ -127,7 +141,10 @@ const Navbar = ({ user, loading, userData }) => {
 
           {/* MOBILE BUTTON */}
           <button
-            onClick={() => setMobileOpen(!mobileOpen)}
+            onClick={() => {
+              setIsVisible(true);
+              setMobileOpen(!mobileOpen);
+            }}
             className="lg:hidden w-11 h-11 rounded-2xl border border-gray-200 flex items-center justify-center text-gray-700 bg-white"
           >
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}

@@ -31,11 +31,23 @@ const ProfilePage = () => {
   const [modalType, setModalType] = useState(null);
   const [tempData, setTempData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const isPlaceholderName = (value) => {
+    if (typeof value !== "string") return true;
+    const normalized = value.trim().toLowerCase();
+    return normalized.length === 0 || normalized === "user";
+  };
+  const resolvedDisplayName = !isPlaceholderName(userData?.fullName)
+    ? userData?.fullName
+    : !isPlaceholderName(auth.currentUser?.displayName)
+      ? auth.currentUser?.displayName
+      : !isPlaceholderName(user?.displayName)
+        ? user?.displayName
+        : "User";
 
   // buka modal dan isi data sementara dengan data dari Context (Backend)
   const openModal = (type) => {
     setTempData({
-      fullName: userData?.fullName || user?.displayName || "",
+      fullName: resolvedDisplayName,
       birthdate: userData?.birthdate
         ? new Date(userData.birthdate).toISOString().split("T")[0]
         : "",
@@ -86,7 +98,7 @@ const ProfilePage = () => {
             }
           : {
               userId: currentUserId,
-              name: userData?.fullName || user.displayName,
+              name: resolvedDisplayName,
               email: user.email,
               birthdate: tempData.birthdate,
               gender: tempData.gender,
@@ -176,7 +188,7 @@ const ProfilePage = () => {
                 Display Name
               </p>
               <p className="font-bold text-[#212121] text-lg">
-                {userData?.fullName || user?.displayName || "User"}
+                {resolvedDisplayName}
               </p>
             </div>
           </div>

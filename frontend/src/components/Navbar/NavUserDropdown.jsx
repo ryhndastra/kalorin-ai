@@ -11,7 +11,18 @@ const NavUserDropdown = ({ user }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
-  const displayName = userData?.fullName || user?.displayName || "User";
+  const isPlaceholderName = (value) => {
+    if (typeof value !== "string") return true;
+    const normalized = value.trim().toLowerCase();
+    return normalized.length === 0 || normalized === "user";
+  };
+  const displayName = !isPlaceholderName(userData?.fullName)
+    ? userData?.fullName
+    : !isPlaceholderName(auth.currentUser?.displayName)
+      ? auth.currentUser?.displayName
+      : !isPlaceholderName(user?.displayName)
+        ? user?.displayName
+        : "User";
   const avatarSrc = userData?.photoURL || user?.photoURL;
 
   // tutup dd kalo klik di luar

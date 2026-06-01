@@ -28,6 +28,12 @@ const PROFILE_LIMITS = {
   maxHeight: 250,
 };
 
+const sanitizeName = (value) => {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+
 const createOrUpdateProfile = async (req, res, next) => {
   try {
     const {
@@ -46,6 +52,8 @@ const createOrUpdateProfile = async (req, res, next) => {
     } = req.body;
     const userId = req.user?.uid;
     const email = req.user?.email || req.body.email;
+    const tokenDisplayName = sanitizeName(req.user?.name);
+    const inputName = sanitizeName(name);
 
     if (isBlank(userId) || isBlank(email)) {
       return res.status(400).json({
@@ -239,10 +247,16 @@ const createOrUpdateProfile = async (req, res, next) => {
       finalProtein = autoNeeds.protein;
     }
 
+    const finalName =
+      inputName ||
+      tokenDisplayName ||
+      sanitizeName(existingProfile?.fullName) ||
+      "User";
+
     const profile = await prisma.profile.upsert({
       where: { userId: userId },
       update: {
-        fullName: name,
+        ...(finalName && { fullName: finalName }),
         ...(numericWeight > 0 && { weight: numericWeight }),
         ...(numericHeight > 0 && { height: numericHeight }),
         ...(normalizedGender && { gender: normalizedGender }),
@@ -277,7 +291,7 @@ const createOrUpdateProfile = async (req, res, next) => {
       create: {
         userId,
         email,
-        fullName: name || "User",
+        fullName: finalName,
         weight: numericWeight || 0,
         height: numericHeight || 0,
         gender: normalizedGender,
