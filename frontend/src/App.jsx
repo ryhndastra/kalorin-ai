@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import GuestRoute from "./components/Navbar/GuestRoute";
 import ProtectedRoute from "./components/Navbar/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "./context/AuthProvider";
 import { useUser } from "./context/UserContext";
 import GlobalErrorBoundary from "./components/common/GlobalErrorBoundary";
@@ -31,6 +32,7 @@ const hasCompleteBodyStats = (profile) => {
 };
 
 export default function App() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { fetchProfile, userData, loading, isInitialized } = useUser();
   const isFetching = useRef(false);
@@ -66,16 +68,18 @@ export default function App() {
     return (
       <div className="min-h-screen bg-[#eefaf1] flex items-center justify-center p-6">
         <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-8 shadow-sm text-center">
-          <h1 className="text-xl font-bold text-gray-900">You are offline</h1>
+          <h1 className="text-xl font-bold text-gray-900">
+            {t("app.offlineTitle")}
+          </h1>
           <p className="mt-3 text-sm text-gray-600">
-            Internet connection is lost. Please reconnect and refresh.
+            {t("app.offlineDesc")}
           </p>
           <button
             type="button"
             onClick={() => window.location.reload()}
             className="mt-6 w-full rounded-2xl bg-[#22C55E] py-3 font-semibold text-white hover:bg-[#1eb053] transition-colors"
           >
-            Retry
+            {t("common.retry")}
           </button>
         </div>
       </div>
@@ -88,7 +92,9 @@ export default function App() {
       <Suspense
         fallback={
           <div className="min-h-screen bg-[#eefaf1] flex items-center justify-center">
-            <p className="text-sm font-medium text-gray-500">Loading app...</p>
+            <p className="text-sm font-medium text-gray-500">
+              {t("common.loadingApp")}
+            </p>
           </div>
         }
       >

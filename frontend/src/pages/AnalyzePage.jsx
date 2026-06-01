@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import Navbar from "../components/Navbar/Navbar";
 import { Camera, Search, User } from "lucide-react";
 import toast from "react-hot-toast";
@@ -15,6 +16,8 @@ import { useAuth } from "../context/AuthContext";
 import { addMealLog } from "../api/trackService";
 
 const AnalyzePage = () => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   // CONTEXT
   const { user } = useAuth();
   const { fetchProfile } = useUser();
@@ -39,7 +42,9 @@ const AnalyzePage = () => {
 
     // NO FILE
     if (!selectedFile) {
-      toast.error("Please upload an image first.");
+      toast.error(
+        isId ? "Silakan upload gambar dulu." : "Please upload an image first.",
+      );
       return;
     }
 
@@ -66,7 +71,10 @@ const AnalyzePage = () => {
 
       // FAILED
       if (!data.success) {
-        toast.error(data.message || "Failed to analyze food.");
+        toast.error(
+          data.message ||
+            (isId ? "Gagal menganalisis makanan." : "Failed to analyze food."),
+        );
         return;
       }
 
@@ -90,7 +98,9 @@ const AnalyzePage = () => {
       });
     } catch (error) {
       console.error(error);
-      toast.error("Something went wrong.");
+      toast.error(
+        isId ? "Terjadi kesalahan. Coba lagi." : "Something went wrong.",
+      );
     } finally {
       setIsAnalyzing(false);
     }
@@ -152,7 +162,11 @@ const AnalyzePage = () => {
 
   const handleAddScanResultToMeal = async () => {
     if (!user) {
-      toast.error("Please sign in to add meals to your log.");
+      toast.error(
+        isId
+          ? "Silakan masuk untuk menambahkan meal ke log."
+          : "Please sign in to add meals to your log.",
+      );
       return;
     }
 
@@ -175,10 +189,16 @@ const AnalyzePage = () => {
       });
 
       await fetchProfile(user.id || user.uid, true);
-      toast.success(`${analysisResult.foodName} added to meal log`);
+      toast.success(
+        isId
+          ? `${analysisResult.foodName} ditambahkan ke log makanan`
+          : `${analysisResult.foodName} added to meal log`,
+      );
     } catch (error) {
       console.error("❌ Failed add scanned meal:", error);
-      toast.error("Failed to add meal log.");
+      toast.error(
+        isId ? "Gagal menambahkan log makanan." : "Failed to add meal log.",
+      );
     } finally {
       setIsAddingMeal(false);
     }
@@ -190,9 +210,14 @@ const AnalyzePage = () => {
       const hasSeenToast = sessionStorage.getItem("welcomeToastShown");
 
       if (!hasSeenToast) {
-        toast.success(`Welcome back, ${user.displayName || "User"}!`, {
+        toast.success(
+          isId
+            ? `Selamat datang kembali, ${user.displayName || "User"}!`
+            : `Welcome back, ${user.displayName || "User"}!`,
+          {
           icon: <User />,
-        });
+          },
+        );
         sessionStorage.setItem("welcomeToastShown", "true");
       }
     }
@@ -207,7 +232,9 @@ const AnalyzePage = () => {
         <div className="w-full bg-green-500 p-4 mt-4">
           <div className="max-w-7xl mx-auto px-4 text-white text-sm font-medium flex justify-between items-center">
             <span>
-              Sign in to track meals & get personalized recommendations
+              {isId
+                ? "Masuk untuk melacak meal & dapat rekomendasi personal"
+                : "Sign in to track meals & get personalized recommendations"}
             </span>
           </div>
         </div>
@@ -218,19 +245,23 @@ const AnalyzePage = () => {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-xl font-bold text-gray-900 mb-1">
-              Food Analysis
+              {isId ? "Analisis Makanan" : "Food Analysis"}
             </h1>
             <p className="text-sm text-gray-500">
               {isGuest
-                ? "Analyze any food with AI — free, no account needed"
-                : "Identify your meal and track your daily nutrition"}
+                ? isId
+                  ? "Analisis makanan apa pun dengan AI - gratis, tanpa akun"
+                  : "Analyze any food with AI — free, no account needed"
+                : isId
+                  ? "Identifikasi meal dan lacak nutrisi harianmu"
+                  : "Identify your meal and track your daily nutrition"}
             </p>
           </div>
 
           {/* GUEST LABEL */}
           {isGuest && (
             <span className="px-5 py-2 border border-green-600 bg-[#eefaf1] text-green-600 text-xs font-semibold rounded-lg">
-              GuestMode
+              {isId ? "Mode Tamu" : "GuestMode"}
             </span>
           )}
         </div>
@@ -250,7 +281,7 @@ const AnalyzePage = () => {
             }`}
           >
             <Camera size={20} />
-            Scan Image
+            {isId ? "Scan Gambar" : "Scan Image"}
           </button>
 
           <button
@@ -266,7 +297,7 @@ const AnalyzePage = () => {
             }`}
           >
             <Search size={20} />
-            Search Food
+            {isId ? "Cari Makanan" : "Search Food"}
           </button>
         </div>
       </div>

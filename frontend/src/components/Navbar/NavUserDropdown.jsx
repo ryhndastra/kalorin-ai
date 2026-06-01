@@ -5,8 +5,11 @@ import { signOut } from "firebase/auth";
 import { auth } from "../../config/firebase";
 import toast from "react-hot-toast";
 import { useUser } from "../../context/UserContext";
+import { useTranslation } from "react-i18next";
 
 const NavUserDropdown = ({ user }) => {
+  const { t, i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   const { userData } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -42,10 +45,10 @@ const NavUserDropdown = ({ user }) => {
 
       sessionStorage.removeItem("welcomeToastShown");
 
-      toast.success("Berhasil logout!");
+      toast.success(t("nav.logoutSuccess"));
       navigate("/");
     } catch (error) {
-      toast.error("Gagal logout", error);
+      toast.error(t("nav.logoutFailed"), error);
     }
   };
 
@@ -61,7 +64,7 @@ const NavUserDropdown = ({ user }) => {
         {avatarSrc ? (
           <img
             src={avatarSrc}
-            alt="Profile"
+            alt={isId ? "Profil" : "Profile"}
             className="w-10 h-10 rounded-full border-2 border-green-500 object-cover"
           />
         ) : (
@@ -85,14 +88,14 @@ const NavUserDropdown = ({ user }) => {
             to="/profile"
             className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
           >
-            <User size={16} /> Profile
+            <User size={16} /> {t("nav.profile")}
           </Link>
 
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100 pt-3"
           >
-            <LogOut size={16} /> Logout
+            <LogOut size={16} /> {t("nav.logout")}
           </button>
         </div>
       )}

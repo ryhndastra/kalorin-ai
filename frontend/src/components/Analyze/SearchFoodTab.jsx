@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Search } from "lucide-react";
 import { getFoods } from "../../api/foodService";
 import SearchFoodCard from "./SearchFoodCard";
@@ -8,6 +9,8 @@ import shuffleArray from "../../utils/shuffleArray";
 import axios from "axios"; //
 
 const SearchFoodTab = () => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   const [foods, setFoods] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [search, setSearch] = useState("");
@@ -105,7 +108,7 @@ const SearchFoodTab = () => {
               setSearch(e.target.value);
               setSelectedCategory("");
             }}
-            placeholder="Search food..."
+            placeholder={isId ? "Cari makanan..." : "Search food..."}
             className="w-full bg-white border border-gray-200 rounded-2xl py-4 pl-12 pr-4 text-sm outline-none focus:border-[#22C55E] transition-all"
           />
         </div>
@@ -122,7 +125,7 @@ const SearchFoodTab = () => {
         {/* LOADING */}
         {isLoading && (
           <div className="text-center text-sm text-gray-500 py-10">
-            Loading foods...
+            {isId ? "Memuat makanan..." : "Loading foods..."}
           </div>
         )}
 
@@ -140,10 +143,14 @@ const SearchFoodTab = () => {
           (search || selectedCategory) &&
           filteredFoods.length === 0 && (
             <div className="bg-white rounded-3xl border border-gray-100 py-16 text-center">
-              <h3 className="font-bold text-gray-800 mb-2">Food not found</h3>
+              <h3 className="font-bold text-gray-800 mb-2">
+                {isId ? "Makanan tidak ditemukan" : "Food not found"}
+              </h3>
 
               <p className="text-sm text-gray-400">
-                Try searching with another keyword or category.
+                {isId
+                  ? "Coba cari dengan kata kunci atau kategori lain."
+                  : "Try searching with another keyword or category."}
               </p>
             </div>
           )}

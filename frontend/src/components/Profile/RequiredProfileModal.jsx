@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useUser } from "../../context/UserContext";
@@ -14,6 +15,8 @@ import {
 } from "../../utils/profileValidation";
 
 const RequiredProfileModal = () => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   const { user } = useAuth();
   const { userData, fetchProfile } = useUser();
   const [formData, setFormData] = useState({
@@ -28,6 +31,34 @@ const RequiredProfileModal = () => {
   });
   const [errorMsg, setErrorMsg] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const genderLabelMap = {
+    male: isId ? "Laki-laki" : "Male",
+    female: isId ? "Perempuan" : "Female",
+  };
+  const activityLabelMap = {
+    sedentary: isId ? "Minim Aktivitas" : "Sedentary",
+    light: isId ? "Aktif Ringan" : "Lightly Active",
+    moderate: isId ? "Aktif Sedang" : "Moderately Active",
+    active: isId ? "Aktif" : "Active",
+    very_active: isId ? "Sangat Aktif" : "Very Active",
+  };
+  const activityDescriptionMap = {
+    sedentary: isId
+      ? "Hampir tidak olahraga, lebih banyak duduk."
+      : "Little to no exercise, mostly sitting.",
+    light: isId
+      ? "Olahraga ringan atau jalan kaki 1-3 hari/minggu."
+      : "Light exercise or walking 1-3 days/week.",
+    moderate: isId
+      ? "Olahraga sedang 3-5 hari/minggu."
+      : "Moderate exercise 3-5 days/week.",
+    active: isId
+      ? "Olahraga berat 6-7 hari/minggu."
+      : "Hard exercise 6-7 days/week.",
+    very_active: isId
+      ? "Latihan sangat berat atau pekerjaan fisik hampir setiap hari."
+      : "Very hard training or physical job most days.",
+  };
 
   const handleChange = (field, value) => {
     setFormData((current) => {
@@ -59,6 +90,7 @@ const RequiredProfileModal = () => {
       height,
       isPregnant: formData.isPregnant,
       isBreastfeeding: formData.isBreastfeeding,
+      language: isId ? "id" : "en",
     });
 
     if (validationError) {
@@ -92,7 +124,11 @@ const RequiredProfileModal = () => {
       }
     } catch (error) {
       console.error("Gagal menyimpan data awal profile:", error);
-      setErrorMsg("Gagal simpan data. Silakan coba lagi.");
+      setErrorMsg(
+        isId
+          ? "Gagal menyimpan data. Silakan coba lagi."
+          : "Failed to save data. Please try again.",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -105,11 +141,12 @@ const RequiredProfileModal = () => {
       <div className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[32px] bg-white p-8 shadow-2xl">
         <div className="mb-6">
           <h3 className="text-xl font-bold text-gray-900">
-            Lengkapi Data Tubuh
+            {isId ? "Lengkapi Data Tubuh" : "Complete Body Data"}
           </h3>
           <p className="mt-2 text-sm leading-6 text-gray-500">
-            Isi data ini dulu supaya KaloriN AI bisa menghitung BMI dan
-            rekomendasi asupan harian kamu.
+            {isId
+              ? "Isi data ini dulu supaya KaloriN AI bisa menghitung BMI dan rekomendasi asupan harian kamu."
+              : "Fill this in first so KaloriN AI can calculate BMI and daily intake recommendations."}
           </p>
         </div>
 
@@ -122,7 +159,7 @@ const RequiredProfileModal = () => {
         <div className="space-y-5">
           <div>
             <label className="ml-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">
-              Birthdate
+              {isId ? "Tanggal Lahir" : "Birthdate"}
             </label>
             <input
               type="date"
@@ -136,17 +173,17 @@ const RequiredProfileModal = () => {
           <div className="flex gap-4">
             <div className="flex-1">
               <label className="ml-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                Gender
+                {isId ? "Jenis Kelamin" : "Gender"}
               </label>
               <select
                 className="mt-1 w-full rounded-2xl border border-gray-100 bg-gray-50 p-4 font-bold text-gray-700 outline-none transition-all focus:border-green-500"
                 value={formData.gender}
                 onChange={(e) => handleChange("gender", e.target.value)}
               >
-                <option value="">Select</option>
+                <option value="">{isId ? "Pilih" : "Select"}</option>
                 {GENDER_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {option.label}
+                    {genderLabelMap[option.value] || option.label}
                   </option>
                 ))}
               </select>
@@ -154,7 +191,7 @@ const RequiredProfileModal = () => {
 
             <div className="flex-1">
               <label className="ml-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                Activity
+                {isId ? "Aktivitas" : "Activity"}
               </label>
               <select
                 className="mt-1 w-full rounded-2xl border border-gray-100 bg-gray-50 p-4 font-bold text-gray-700 outline-none transition-all focus:border-green-500"
@@ -163,12 +200,13 @@ const RequiredProfileModal = () => {
               >
                 {ACTIVITY_LEVEL_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {option.label}
+                    {activityLabelMap[option.value] || option.label}
                   </option>
                 ))}
               </select>
               <p className="mt-2 min-h-5 text-xs font-medium leading-5 text-gray-500">
-                {getActivityLevelDescription(formData.activityLevel)}
+                {activityDescriptionMap[formData.activityLevel] ||
+                  getActivityLevelDescription(formData.activityLevel)}
               </p>
             </div>
           </div>
@@ -181,7 +219,7 @@ const RequiredProfileModal = () => {
                 disabled={formData.gender === "male"}
                 onChange={(e) => handleChange("isPregnant", e.target.checked)}
               />
-              Pregnant
+              {isId ? "Sedang Hamil" : "Pregnant"}
             </label>
             <label className="flex items-center gap-3 text-sm font-semibold text-gray-700">
               <input
@@ -192,7 +230,7 @@ const RequiredProfileModal = () => {
                   handleChange("isBreastfeeding", e.target.checked)
                 }
               />
-              Breastfeeding
+              {isId ? "Menyusui" : "Breastfeeding"}
             </label>
             <label className="flex items-center gap-3 text-sm font-semibold text-gray-700">
               <input
@@ -202,18 +240,19 @@ const RequiredProfileModal = () => {
                   handleChange("hasMedicalCondition", e.target.checked)
                 }
               />
-              Have medical condition
+              {isId ? "Memiliki kondisi medis" : "Have medical condition"}
             </label>
             <p className="text-xs leading-5 text-gray-500">
-              For these conditions, daily targets are best set manually with
-              professional guidance.
+              {isId
+                ? "Untuk kondisi ini, target harian sebaiknya diatur manual dengan panduan profesional."
+                : "For these conditions, daily targets are best set manually with professional guidance."}
             </p>
           </div>
 
           <div className="flex gap-4">
             <div className="flex-1">
               <label className="ml-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                Weight (kg)
+                {isId ? "Berat (kg)" : "Weight (kg)"}
               </label>
               <input
                 type="number"
@@ -228,7 +267,7 @@ const RequiredProfileModal = () => {
 
             <div className="flex-1">
               <label className="ml-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                Height (cm)
+                {isId ? "Tinggi (cm)" : "Height (cm)"}
               </label>
               <input
                 type="number"
@@ -252,10 +291,10 @@ const RequiredProfileModal = () => {
           {isSaving ? (
             <>
               <Loader2 size={18} className="animate-spin" />
-              Saving...
+              {isId ? "Menyimpan..." : "Saving..."}
             </>
           ) : (
-            "Save and Continue"
+            isId ? "Simpan dan Lanjutkan" : "Save and Continue"
           )}
         </button>
       </div>

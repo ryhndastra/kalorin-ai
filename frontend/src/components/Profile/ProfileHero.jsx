@@ -1,4 +1,5 @@
 import React, { memo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Camera, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { uploadProfileAvatar } from "../../api/userService";
@@ -7,6 +8,8 @@ import { useUser } from "../../context/UserContext";
 // memo() bakal ngecek: "data yang masuk (user & userData) berubah ga?"
 // kalau isinya sama kayak sebelumnya, dia skip re render.
 const ProfileHero = memo(({ user, userData }) => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   const { fetchProfile } = useUser();
   const fileInputRef = useRef(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -38,11 +41,16 @@ const ProfileHero = memo(({ user, userData }) => {
     try {
       await uploadProfileAvatar(file);
       await fetchProfile(user.id, true);
-      toast.success("Profile photo updated.");
+      toast.success(
+        isId ? "Foto profil berhasil diperbarui." : "Profile photo updated.",
+      );
     } catch (error) {
       console.error("Failed to upload avatar:", error);
       toast.error(
-        error.response?.data?.message || "Failed to upload profile photo.",
+        error.response?.data?.message ||
+          (isId
+            ? "Gagal mengunggah foto profil."
+            : "Failed to upload profile photo."),
       );
     } finally {
       setIsUploading(false);
@@ -77,12 +85,12 @@ const ProfileHero = memo(({ user, userData }) => {
           onClick={handleAvatarClick}
           disabled={isUploading}
           className="relative h-28 w-28 overflow-hidden rounded-full border-4 border-white/40 bg-white/20 shadow-2xl transition-transform duration-300 hover:scale-105 disabled:cursor-not-allowed"
-          aria-label="Change profile photo"
+          aria-label={isId ? "Ubah foto profil" : "Change profile photo"}
         >
           <img
             src={avatarSrc}
             className="w-full h-full object-cover"
-            alt="profile"
+            alt={isId ? "Profil" : "Profile"}
           />
           <span className="absolute inset-x-0 bottom-0 flex h-9 items-center justify-center bg-black/45 text-white">
             {isUploading ? (
@@ -116,7 +124,7 @@ const ProfileHero = memo(({ user, userData }) => {
         {/* Weight Box */}
         <div className="flex-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 text-center flex flex-col justify-center">
           <p className="text-[10px] uppercase opacity-70 font-bold tracking-widest mb-1">
-            Weight
+            {isId ? "Berat" : "Weight"}
           </p>
           <p className="text-xl font-bold">
             {weight}
@@ -129,7 +137,7 @@ const ProfileHero = memo(({ user, userData }) => {
         {/* height box */}
         <div className="flex-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 text-center flex flex-col justify-center">
           <p className="text-[10px] uppercase opacity-70 font-bold tracking-widest mb-1">
-            Height
+            {isId ? "Tinggi" : "Height"}
           </p>
           <p className="text-xl font-bold">
             {height}

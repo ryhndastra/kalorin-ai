@@ -3,12 +3,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { signOut } from "firebase/auth";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { auth } from "../../config/firebase";
 import { useUser } from "../../context/UserContext";
 import NavLinks from "./NavLinks";
 import NavUserDropdown from "./NavUserDropdown";
+import LanguageSwitcher from "../common/LanguageSwitcher";
 
 const Navbar = ({ user, loading, userData }) => {
+  const { t, i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   const { userData: contextUserData } = useUser();
   const [isVisible, setIsVisible] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -79,11 +83,11 @@ const Navbar = ({ user, loading, userData }) => {
       setTimeout(async () => {
         await signOut(auth);
         sessionStorage.removeItem("welcomeToastShown");
-        toast.success("Berhasil logout!");
+        toast.success(t("nav.logoutSuccess"));
         navigate("/");
       }, 280);
     } catch (error) {
-      toast.error("Gagal logout", error);
+      toast.error(t("nav.logoutFailed"), error);
     }
   };
 
@@ -116,6 +120,7 @@ const Navbar = ({ user, loading, userData }) => {
 
           {/* RIGHT */}
           <div className="hidden lg:flex items-center gap-4">
+            <LanguageSwitcher />
             {loading ? (
               <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse" />
             ) : user ? (
@@ -126,14 +131,14 @@ const Navbar = ({ user, loading, userData }) => {
                   to="/login"
                   className="text-sm font-semibold text-gray-600 hover:text-green-600 transition-colors"
                 >
-                  Sign In
+                  {t("common.signIn")}
                 </Link>
 
                 <Link
                   to="/register"
                   className="bg-green-500 text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-green-600 transition block"
                 >
-                  Get Started
+                  {t("nav.getStarted")}
                 </Link>
               </>
             )}
@@ -172,6 +177,9 @@ const Navbar = ({ user, loading, userData }) => {
             mobileOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
+          <div className="absolute top-6 right-6">
+            <LanguageSwitcher />
+          </div>
           <div className="pt-28 px-6 pb-8 flex flex-col h-full">
             {/* NAV LINKS */}
             {user && (
@@ -190,7 +198,7 @@ const Navbar = ({ user, loading, userData }) => {
                   <div className="flex items-center gap-4 bg-[#F8FAFC] rounded-2xl p-4 border border-gray-100 mb-5">
                     <img
                       src={avatarSrc}
-                      alt="Profile"
+                      alt={isId ? "Profil" : "Profile"}
                       onError={(e) => {
                         e.currentTarget.onerror = null;
                         e.currentTarget.src = "/images/default-avatar.png";
@@ -213,7 +221,7 @@ const Navbar = ({ user, loading, userData }) => {
                       onClick={() => setAccountOpen(!accountOpen)}
                       className="w-full rounded-2xl bg-[#F8FAFC] border border-gray-100 px-4 py-4 text-left font-semibold text-gray-800"
                     >
-                      Account
+                      {t("nav.account")}
                     </button>
 
                     <div
@@ -228,13 +236,13 @@ const Navbar = ({ user, loading, userData }) => {
                           onClick={() => handleMobileNavigate("/profile")}
                           className="rounded-2xl px-4 py-3 text-left font-medium text-gray-700 hover:bg-[#F8FAFC] transition"
                         >
-                          Profile
+                          {t("nav.profile")}
                         </button>
                         <button
                           onClick={handleLogout}
                           className="rounded-2xl px-4 py-3 text-left font-medium text-red-600 hover:bg-red-50 transition"
                         >
-                          Logout
+                          {t("nav.logout")}
                         </button>
                       </div>
                     </div>
@@ -246,13 +254,13 @@ const Navbar = ({ user, loading, userData }) => {
                     onClick={() => handleMobileNavigate("/login")}
                     className="w-full rounded-2xl border border-gray-200 py-3 text-center font-semibold text-gray-700"
                   >
-                    Sign In
+                    {t("common.signIn")}
                   </button>
                   <button
                     onClick={() => handleMobileNavigate("/register")}
                     className="w-full rounded-2xl bg-green-500 py-3 text-center font-semibold text-white"
                   >
-                    Get Started
+                    {t("nav.getStarted")}
                   </button>
                 </div>
               )}

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Brain,
   TriangleAlert,
@@ -52,6 +53,8 @@ const sourceLabel = {
 };
 
 const BehavioralInsightsList = ({ insights, source = "unknown" }) => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   return (
     <div className="bg-gradient-to-br from-white to-[#F8FAFC] rounded-3xl p-8 shadow-sm border border-gray-100 overflow-hidden relative">
       {/* GLOW */}
@@ -64,10 +67,12 @@ const BehavioralInsightsList = ({ insights, source = "unknown" }) => {
         </div>
         <div>
           <h2 className="text-3xl font-bold text-gray-900">
-            AI Behavioral Insights
+            {isId ? "Insight Perilaku AI" : "AI Behavioral Insights"}
           </h2>
           <p className="text-gray-500 mt-1">
-            Personalized observations based on your nutrition patterns
+            {isId
+              ? "Observasi personal berdasarkan pola nutrisi kamu"
+              : "Personalized observations based on your nutrition patterns"}
           </p>
         </div>
         <span className="ml-auto rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
@@ -79,11 +84,12 @@ const BehavioralInsightsList = ({ insights, source = "unknown" }) => {
       {!insights?.length ? (
         <div className="bg-[#F8FAFC] border border-gray-100 rounded-3xl p-10 text-center relative z-10">
           <h3 className="text-2xl font-bold text-gray-800 mb-3">
-            No Insights Yet
+            {isId ? "Belum Ada Insight" : "No Insights Yet"}
           </h3>
           <p className="text-gray-500 leading-relaxed max-w-xl mx-auto">
-            Track more meals consistently to unlock AI-powered nutrition
-            behavior analysis.
+            {isId
+              ? "Lacak lebih banyak meal secara konsisten untuk membuka analisis perilaku nutrisi bertenaga AI."
+              : "Track more meals consistently to unlock AI-powered nutrition behavior analysis."}
           </p>
         </div>
       ) : (

@@ -1,16 +1,18 @@
 import React from "react";
 import { CircleCheckBig, Clock3, ChartLine } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const Features = () => {
+  const { t } = useTranslation();
   return (
     <section className="py-20 px-4 max-w-3xl mx-auto">
       {/* Header */}
       <div className="text-center mb-12">
         <h2 className="text-3xl font-extrabold text-gray-900 mb-3">
-          Semua yang kamu butuhkan
+          {t("landing.featuresTitle")}
         </h2>
         <p className="text-gray-500">
-          Satu app untuk semua kebutuhan gizi harianmu
+          {t("landing.featuresSubtitle")}
         </p>
       </div>
 
@@ -24,10 +26,10 @@ const Features = () => {
           </div>
           <div>
             <h3 className="font-bold text-gray-900 text-lg mb-1">
-              Track Kalori Mudah
+              {t("landing.feature1Title")}
             </h3>
             <p className="text-gray-500 text-sm leading-relaxed">
-              Catat makanan dan minuman harianmu dengan cepat untuk memantau asupan kalori secara lebih teratur dan akurat.
+              {t("landing.feature1Desc")}
             </p>
           </div>
         </div>
@@ -39,10 +41,10 @@ const Features = () => {
           </div>
           <div>
             <h3 className="font-bold text-gray-900 text-lg mb-1">
-              Rekomendasi AI Personal
+              {t("landing.feature2Title")}
             </h3>
             <p className="text-gray-500 text-sm leading-relaxed">
-              Dapatkan rekomendasi pola makan dan target nutrisi yang disesuaikan dengan profil, tujuan, dan kebutuhan tubuhmu.
+              {t("landing.feature2Desc")}
             </p>
           </div>
         </div>
@@ -54,10 +56,10 @@ const Features = () => {
           </div>
           <div>
             <h3 className="font-bold text-gray-900 text-lg mb-1">
-              Analisis Nutrisi Lengkap
+              {t("landing.feature3Title")}
             </h3>
             <p className="text-gray-500 text-sm leading-relaxed">
-              Lihat ringkasan nutrisi harian mulai dari kalori, protein, lemak, hingga karbohidrat untuk membantu menjaga pola hidup sehat.
+              {t("landing.feature3Desc")}
             </p>
           </div>
         </div>

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { getFoodRecommendation } from "../../api/aiService";
 import { addMealLog } from "../../api/trackService";
 import { useAuth } from "../../context/AuthProvider";
@@ -19,6 +20,8 @@ import { useUser } from "../../context/UserContext";
 const CACHE_TTL = 1000 * 60 * 30; // 30 menit
 
 const FoodDetailModal = ({ food, isOpen, onClose }) => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   const { user } = useAuth();
   const { fetchProfile } = useUser();
   const [aiData, setAiData] = useState(null);
@@ -28,7 +31,12 @@ const FoodDetailModal = ({ food, isOpen, onClose }) => {
 
   // TYPEWRITER EFFECT
   const typeText = useCallback((text) => {
-    const str = String(text || "RinAI sedang menyiapkan analisis...");
+    const str = String(
+      text ||
+        (isId
+          ? "RinAI sedang menyiapkan analisis..."
+          : "RinAI is preparing the analysis..."),
+    );
     let i = 0;
     setDisplayedText("");
     const interval = setInterval(() => {
@@ -39,7 +47,7 @@ const FoodDetailModal = ({ food, isOpen, onClose }) => {
       }
     }, 15);
     return () => clearInterval(interval);
-  }, []);
+  }, [isId]);
 
   // CACHE HELPERS
   const getCachedData = (key) => {
@@ -85,7 +93,8 @@ const FoodDetailModal = ({ food, isOpen, onClose }) => {
     }
 
     if (!food?.id || !user?.id) return;
-    const cacheKey = `rinai-${user.id}-${food.id}`;
+    const languageKey = isId ? "id" : "en";
+    const cacheKey = `rinai-${languageKey}-${user.id}-${food.id}`;
 
     // CHECK CACHE
     const cachedData = getCachedData(cacheKey);
@@ -106,7 +115,9 @@ const FoodDetailModal = ({ food, isOpen, onClose }) => {
         const safeExplanation =
           typeof explanation === "string" && explanation.trim().length > 0
             ? explanation
-            : "RinAI belum bisa memberikan analisis detail untuk makanan ini.";
+            : isId
+              ? "RinAI belum bisa memberikan analisis detail untuk makanan ini."
+              : "RinAI could not generate a detailed analysis for this food yet.";
         const matchScore = res?.recommendation?.match_score_percent || 0;
 
         const dataToCache = {
@@ -120,14 +131,16 @@ const FoodDetailModal = ({ food, isOpen, onClose }) => {
       } catch (err) {
         console.error("❌ Food Detail AI Error:", err);
         setDisplayedText(
-          "RinAI sementara tidak dapat membuat analisis detail.",
+          isId
+            ? "RinAI sementara tidak dapat membuat analisis detail."
+            : "RinAI is temporarily unable to generate a detailed analysis.",
         );
       } finally {
         setLoading(false);
       }
     };
     fetchAI();
-  }, [isOpen, food?.id, user?.id, typeText]);
+  }, [isOpen, food?.id, user?.id, typeText, isId]);
 
   // ADD TO MEAL
   const handleAddMeal = async () => {
@@ -152,11 +165,16 @@ const FoodDetailModal = ({ food, isOpen, onClose }) => {
       // REFRESH HOMEPAGE STATS
       await fetchProfile(user.id || user.uid, true);
 
-      toast.success(`${food.name} added to meal log`, {
+      toast.success(
+        isId
+          ? `${food.name} ditambahkan ke log makanan`
+          : `${food.name} added to meal log`,
+        {
         icon: <Utensils size={18} />,
-      });
+        },
+      );
     } catch (error) {
-      toast.error("Failed to add meal", {
+      toast.error(isId ? "Gagal menambah meal" : "Failed to add meal", {
         icon: <CircleX size={18} />,
       });
       console.error("❌ Failed add meal:", error);
@@ -222,7 +240,9 @@ const FoodDetailModal = ({ food, isOpen, onClose }) => {
               {/* TITLE */}
               <h2 className="text-2xl font-bold text-gray-800">{food.name}</h2>
               <p className="text-gray-500 text-sm mb-6 italic">
-                Nutritional info per serving
+                {isId
+                  ? "Informasi nutrisi per porsi"
+                  : "Nutritional info per serving"}
               </p>
 
               {/* NUTRITION GRID */}
@@ -252,7 +272,9 @@ const FoodDetailModal = ({ food, isOpen, onClose }) => {
               <div className="bg-[#22C55E]/5 rounded-2xl p-4 border border-[#22C55E]/10 min-h-[100px]">
                 <div className="flex items-center gap-2 mb-2 text-[#22C55E]">
                   <Sparkles size={16} />
-                  <span className="font-bold text-sm">RinAI Analysis</span>
+                  <span className="font-bold text-sm">
+                    {isId ? "Analisis RinAI" : "RinAI Analysis"}
+                  </span>
                 </div>
 
                 {loading ? (
@@ -274,7 +296,13 @@ const FoodDetailModal = ({ food, isOpen, onClose }) => {
                 disabled={isAddingMeal}
                 className="w-full mt-6 py-4 bg-[#22C55E] text-white font-bold rounded-2xl disabled:opacity-50"
               >
-                {isAddingMeal ? "Adding..." : "Add to Meal Log"}
+                {isAddingMeal
+                  ? isId
+                    ? "Menambahkan..."
+                    : "Adding..."
+                  : isId
+                    ? "Tambah ke Log Makan"
+                    : "Add to Meal Log"}
               </button>
             </div>
           </motion.div>

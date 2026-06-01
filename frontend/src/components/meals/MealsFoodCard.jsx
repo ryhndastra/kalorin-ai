@@ -1,13 +1,19 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import FoodDetailModal from "../common/FoodDetailModal";
 
 const FoodCard = ({ food, userId }) => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
+  const languageKey = isId ? "id" : "en";
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [aiData, setAiData] = useState(() => {
     if (!userId) {
       return null;
     }
-    const cached = sessionStorage.getItem(`rinai-${userId}-${food.id}`);
+    const cached = sessionStorage.getItem(
+      `rinai-${languageKey}-${userId}-${food.id}`,
+    );
     return cached ? JSON.parse(cached) : null;
   });
 
@@ -25,7 +31,8 @@ const FoodCard = ({ food, userId }) => {
           {/* MATCH SCORE */}
           {(food.matchScore || aiData?.match_score_percent) && (
             <div className="absolute top-3 left-3 bg-[#22C55E] text-white text-[10px] px-2 py-1 rounded-lg font-bold shadow-sm">
-              {food.matchScore || aiData.match_score_percent}% Match
+              {food.matchScore || aiData.match_score_percent}%{" "}
+              {isId ? "Cocok" : "Match"}
             </div>
           )}
         </div>
@@ -55,12 +62,16 @@ const FoodCard = ({ food, userId }) => {
               <p className="font-bold text-gray-800 text-sm">
                 {food.carbohydrate}g
               </p>
-              <p className="text-xs text-gray-500">Carbs</p>
+              <p className="text-xs text-gray-500">
+                {isId ? "Karbo" : "Carbs"}
+              </p>
             </div>
 
             <div>
               <p className="font-bold text-gray-800 text-sm">{food.fat}g</p>
-              <p className="text-xs text-gray-500">Fat</p>
+              <p className="text-xs text-gray-500">
+                {isId ? "Lemak" : "Fat"}
+              </p>
             </div>
           </div>
 
@@ -73,7 +84,7 @@ const FoodCard = ({ food, userId }) => {
               }}
               className="w-full py-3 rounded-2xl bg-[#22C55E] text-white font-semibold text-sm hover:bg-[#16A34A] transition-all"
             >
-              View Details
+              {isId ? "Lihat Detail" : "View Details"}
             </button>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Plus, Loader2 } from "lucide-react";
 
 const AnalysisResult = ({
@@ -8,25 +9,29 @@ const AnalysisResult = ({
   isAddingMeal = false,
   canAddMeal = true,
 }) => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   return (
     <div className="bg-white rounded-3xl p-6 mb-8 shadow-md border border-green-50 animate-in fade-in zoom-in duration-300">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold text-gray-900">Analysis Result</h3>
+        <h3 className="text-xl font-bold text-gray-900">
+          {isId ? "Hasil Analisis" : "Analysis Result"}
+        </h3>
         <span className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-bold">
-          {result.confidence} Match
+          {result.confidence} {isId ? "Kecocokan" : "Match"}
         </span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="bg-gray-50 p-4 rounded-2xl">
           <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">
-            Food Name
+            {isId ? "Nama Makanan" : "Food Name"}
           </p>
           <p className="text-lg font-bold text-green-600">{result.foodName}</p>
         </div>
         <div className="bg-gray-50 p-4 rounded-2xl">
           <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">
-            Est. Calories
+            {isId ? "Perkiraan Kalori" : "Est. Calories"}
           </p>
           <p className="text-lg font-bold text-orange-500">
             {result.calories} kcal
@@ -60,17 +65,23 @@ const AnalysisResult = ({
             <Plus size={16} />
           )}
           {isAddingMeal
-            ? "Adding..."
+            ? isId
+              ? "Menambahkan..."
+              : "Adding..."
             : canAddMeal
-              ? "Add to Meal Log"
-              : "Sign in to Add"}
+              ? isId
+                ? "Tambah ke Log Makan"
+                : "Add to Meal Log"
+              : isId
+                ? "Masuk untuk Menambah"
+                : "Sign in to Add"}
         </button>
 
         <button
           onClick={onClear}
           className="flex-1 py-3 rounded-2xl border border-gray-100 text-sm font-semibold text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition"
         >
-          Clear Result
+          {isId ? "Hapus Hasil" : "Clear Result"}
         </button>
       </div>
     </div>

@@ -8,9 +8,9 @@ const { getCache, setCache } = require("../utils/cacheUtils");
 const insightCache = new Map();
 
 // GENERATE INSIGHT
-const generateInsight = async (userId, macroContext) => {
+const generateInsight = async (userId, macroContext, language = "en") => {
   // cache ikut context
-  const cacheKey = `insight-${userId}-${macroContext}`;
+  const cacheKey = `insight-${userId}-${language}-${macroContext}`;
 
   const cachedInsight = getCache(insightCache, cacheKey);
 
@@ -31,6 +31,7 @@ const generateInsight = async (userId, macroContext) => {
   try {
     const aiResponse = await requestInsight({
       user_status: String(userStatus),
+      language,
 
       macro_context: String(
         macroContext ||
@@ -41,7 +42,9 @@ const generateInsight = async (userId, macroContext) => {
     const insightText =
       aiResponse?.insight_text ||
       macroContext ||
-      "Stay consistent with your nutrition goals today!";
+      (language === "id"
+        ? "Tetap konsisten dengan target nutrisi kamu hari ini!"
+        : "Stay consistent with your nutrition goals today!");
 
     setCache(insightCache, cacheKey, insightText, INSIGHT_TTL);
 
@@ -50,7 +53,12 @@ const generateInsight = async (userId, macroContext) => {
     console.error("❌ Insight Service Error:", error.message);
 
     // contextual fallback
-    return macroContext || "Stay consistent with your nutrition goals today !";
+    return (
+      macroContext ||
+      (language === "id"
+        ? "Tetap konsisten dengan target nutrisi kamu hari ini!"
+        : "Stay consistent with your nutrition goals today!")
+    );
   }
 };
 

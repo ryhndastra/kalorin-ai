@@ -108,13 +108,13 @@ const withTimeout = (promise, ms) =>
   ]);
 
 // GENERATE RECOMMENDATION LIST
-const generateRecommendationList = async (userId) => {
+const generateRecommendationList = async (userId, language = "en") => {
   const user = await prisma.profile.findUnique({ where: { userId } });
 
   if (!user) throw new Error("User profile not found");
 
   const userGoal = user.goal?.toLowerCase() || "stay healthy";
-  const recommendationCacheKey = `recommend-list-${userId}-${userGoal}`;
+  const recommendationCacheKey = `recommend-list-${userId}-${language}-${userGoal}`;
 
   // 1. Cek cache list final
   const cachedRecommendations = getCache(
@@ -163,7 +163,7 @@ const generateRecommendationList = async (userId) => {
     CONCURRENT_LIMIT,
     async (food) => {
       try {
-        const payload = buildAIPayload(user, food);
+        const payload = { ...buildAIPayload(user, food), language };
         const aiData = await withTimeout(
           requestRecommendation(payload), // ← Redis cache + dedup aktif di sini
           AI_PER_ITEM_TIMEOUT_MS,
@@ -178,7 +178,10 @@ const generateRecommendationList = async (userId) => {
           matchScore,
           matchLabel: getScoreLabel(matchScore),
           explanation:
-            aiData.explanation || "Good nutritional match for your profile.",
+            aiData.explanation ||
+            (language === "id"
+              ? "Kecocokan nutrisi yang baik untuk profilmu."
+              : "Good nutritional match for your profile."),
         };
       } catch (error) {
         console.error(`❌ Food AI Error (${food.name}):`, error.message);
@@ -196,9 +199,12 @@ const generateRecommendationList = async (userId) => {
   const selectedIds = new Set(aiRankedFoods.map((food) => food.id));
   const fallbackFoods = candidatePool
     .map((food) => ({
-      ...food,
-      matchScore: normalizeScore(heuristicScore(food, userGoal, userStatus)),
-      explanation: "Recommended from nutrition profile matching.",
+        ...food,
+        matchScore: normalizeScore(heuristicScore(food, userGoal, userStatus)),
+        explanation:
+          language === "id"
+            ? "Direkomendasikan berdasarkan kecocokan profil nutrisi."
+            : "Recommended from nutrition profile matching.",
     }))
     .map((food) => ({
       ...food,
@@ -234,7 +240,10 @@ const generateRecommendationList = async (userId) => {
         matchLabel: getScoreLabel(
           normalizeScore(heuristicScore(food, userGoal, userStatus)),
         ),
-        explanation: "Recommended from nutrition profile matching.",
+        explanation:
+          language === "id"
+            ? "Direkomendasikan berdasarkan kecocokan profil nutrisi."
+            : "Recommended from nutrition profile matching.",
       }))
       .sort((a, b) => b.matchScore - a.matchScore)
       .slice(0, needed);
@@ -256,7 +265,7 @@ const generateRecommendationList = async (userId) => {
 };
 
 // FOOD DETAIL
-const generateFoodDetail = async (userId, foodId) => {
+const generateFoodDetail = async (userId, foodId, language = "en") => {
   const user = await prisma.profile.findUnique({ where: { userId } });
   const food = await prisma.food.findUnique({
     where: { id: Number(foodId) },
@@ -264,7 +273,7 @@ const generateFoodDetail = async (userId, foodId) => {
 
   if (!user || !food) throw new Error("Data not found");
 
-  const payload = buildAIPayload(user, food);
+  const payload = { ...buildAIPayload(user, food), language };
   const recommendation = await requestRecommendationWithExplanation(payload);
   const matchScore = normalizeScore(recommendation?.match_score_percent);
 

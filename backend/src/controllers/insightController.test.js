@@ -98,6 +98,7 @@ describe("insightController", () => {
 
     await insightController.getBehavioralInsights(req, res);
 
+    expect(getBehavioralInsightsService).toHaveBeenCalledWith("u1", "en");
     expect(res.json).toHaveBeenCalledWith({
       success: true,
       data: ["drink more water"],
@@ -122,7 +123,7 @@ describe("insightController", () => {
 
     await insightController.getWeeklyScore(req, res);
 
-    expect(getWeeklyScoreService).toHaveBeenCalledWith("u1");
+    expect(getWeeklyScoreService).toHaveBeenCalledWith("u1", "en");
   });
 
   test("getNutritionPatterns returns patterns", async () => {

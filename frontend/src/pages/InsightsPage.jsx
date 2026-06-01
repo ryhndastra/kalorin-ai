@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Navbar from "../components/Navbar/Navbar";
 import { useAuth } from "../context/AuthProvider";
 import {
@@ -13,6 +14,8 @@ import InsightsPageSkeleton from "../components/skeletons/InsightsPageSkeleton";
 import BehavioralInsightsSkeleton from "../components/skeletons/insights/BehavioralInsightsSkeleton";
 
 const InsightsPage = () => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   const { user } = useAuth();
 
   // STATES
@@ -85,7 +88,7 @@ const InsightsPage = () => {
       }
     };
     fetchMainInsights();
-  }, [user]);
+  }, [user, isId]);
 
   // FETCH AI INSIGHTS
   useEffect(() => {
@@ -107,7 +110,7 @@ const InsightsPage = () => {
     };
 
     fetchBehavioralInsights();
-  }, [user]);
+  }, [user, isId]);
 
   // PAGE LOADING
   if (pageLoading) {
@@ -123,10 +126,12 @@ const InsightsPage = () => {
           <div className="flex items-center gap-4">
             <div>
               <h1 className="text-5xl font-bold text-gray-900 tracking-tight">
-                Weekly Insights
+                {isId ? "Insight Mingguan" : "Weekly Insights"}
               </h1>
               <p className="text-gray-500 mt-2 text-lg">
-                Analyze your nutrition behavior and weekly trends
+                {isId
+                  ? "Analisis perilaku nutrisi dan tren mingguanmu"
+                  : "Analyze your nutrition behavior and weekly trends"}
               </p>
             </div>
           </div>
@@ -147,10 +152,12 @@ const InsightsPage = () => {
             {/* HEADER */}
             <div className="mb-8 relative z-10">
               <h2 className="text-3xl font-bold text-gray-900">
-                Weekly Comparison
+                {isId ? "Perbandingan Mingguan" : "Weekly Comparison"}
               </h2>
               <p className="text-gray-500 mt-2">
-                Compare your nutrition progress with the previous week
+                {isId
+                  ? "Bandingkan progres nutrisi dengan minggu sebelumnya"
+                  : "Compare your nutrition progress with the previous week"}
               </p>
             </div>
 

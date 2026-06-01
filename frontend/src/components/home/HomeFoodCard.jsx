@@ -1,14 +1,20 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { BrainCircuit } from "lucide-react";
 import FoodDetailModal from "../common/FoodDetailModal";
 const HomeFoodCard = ({ food, userId }) => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
+  const languageKey = isId ? "id" : "en";
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [aiData, setAiData] = useState(() => {
     if (!userId) {
       return null;
     }
-    const cached = sessionStorage.getItem(`rinai-${userId}-${food.id}`);
+    const cached = sessionStorage.getItem(
+      `rinai-${languageKey}-${userId}-${food.id}`,
+    );
     return cached ? JSON.parse(cached) : null;
   });
 
@@ -45,7 +51,7 @@ const HomeFoodCard = ({ food, userId }) => {
           }}
           className="mt-auto w-full py-2 bg-gray-50 text-gray-600 text-[11px] font-bold rounded-xl hover:bg-[#22C55E] hover:text-white transition-all border border-gray-100"
         >
-          Details
+          {isId ? "Detail" : "Details"}
         </button>
       </div>
 

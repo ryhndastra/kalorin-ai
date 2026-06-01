@@ -12,11 +12,14 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(async (config) => {
   const currentUser = auth.currentUser;
+  const appLanguage = localStorage.getItem("app_language") || "id";
 
   if (currentUser) {
     const token = await currentUser.getIdToken();
     config.headers.Authorization = `Bearer ${token}`;
   }
+  config.headers["Accept-Language"] = appLanguage;
+  config.headers["X-App-Language"] = appLanguage;
 
   return config;
 });

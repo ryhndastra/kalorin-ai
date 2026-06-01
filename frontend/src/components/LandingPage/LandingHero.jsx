@@ -1,8 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const LandingHero = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <section className="flex flex-col items-center text-center pt-20 pb-16 px-4 bg-[#eefaf1] relative overflow-hidden min-h-screen">
@@ -20,13 +22,13 @@ const LandingHero = () => {
 
         {/* Text Content */}
         <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6 max-w-2xl leading-tight">
-          Makan Cerdas, <br className="hidden md:block" />
-          <span className="text-green-500">Hidup Sehat</span> Setiap Hari
+          {t("landing.heroTitleLine1")} <br className="hidden md:block" />
+          <span className="text-green-500">{t("landing.heroTitleHighlight")}</span>{" "}
+          {t("landing.heroTitleLine2")}
         </h1>
 
         <p className="text-gray-600 mb-10 max-w-xl text-sm md:text-base leading-relaxed">
-          Kalorin AI membantu Anda menghitung BMI, 
-          menganalisis kebutuhan nutrisi, dan menemukan rekomendasi makanan yang sesuai dengan kondisi tubuh secara cepat dan mudah
+          {t("landing.heroSubtitle")}
         </p>
 
         {/* Button */}
@@ -35,7 +37,7 @@ const LandingHero = () => {
           className="flex flex-col sm:flex-row gap-4 mb-16 w-full sm:w-auto"
         >
           <button className="bg-green-500 text-white px-10 py-3.5 rounded-full font-semibold hover:bg-green-600 transition-colors shadow-lg shadow-green-500/20 w-full sm:w-auto">
-            Mulai Gratis
+            {t("landing.startFree")}
           </button>
         </div>
 
@@ -82,10 +84,10 @@ const LandingHero = () => {
             </div>
             <div className="flex-1 text-left">
               <div className="text-xs font-bold text-green-500 mb-1 flex items-center gap-1">
-                AI sedang menganalisis...
+                {t("landing.analyzing")}
               </div>
               <div className="text-sm font-semibold text-gray-800">
-                Salad Ayam Panggang
+                {t("landing.sampleFood")}
               </div>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { useAuth } from "../../context/AuthProvider";
 import { addMealLog } from "../../api/trackService";
@@ -6,6 +7,8 @@ import toast from "react-hot-toast";
 import { useUser } from "../../context/UserContext";
 
 const SearchFoodCard = ({ food }) => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   const { user } = useAuth();
   const [isAdding, setIsAdding] = useState(false);
   const { fetchProfile } = useUser();
@@ -14,7 +17,11 @@ const SearchFoodCard = ({ food }) => {
   const handleAddMeal = async () => {
     try {
       if (!user) {
-        toast.error("Please sign in to add meals to your log.");
+        toast.error(
+          isId
+            ? "Silakan masuk untuk menambahkan meal ke log."
+            : "Please sign in to add meals to your log.",
+        );
         return;
       }
       setIsAdding(true);
@@ -33,10 +40,16 @@ const SearchFoodCard = ({ food }) => {
       // REFRESH PROFILE
       await fetchProfile(user.id || user.uid, true);
 
-      toast.success(`${food.name} added to meal log`);
+      toast.success(
+        isId
+          ? `${food.name} ditambahkan ke log makanan`
+          : `${food.name} added to meal log`,
+      );
     } catch (error) {
       console.error("❌ Failed add meal:", error);
-      toast.error("Failed to add meal log.");
+      toast.error(
+        isId ? "Gagal menambahkan log makanan." : "Failed to add meal log.",
+      );
     } finally {
       setIsAdding(false);
     }
@@ -69,12 +82,12 @@ const SearchFoodCard = ({ food }) => {
             <span className="font-bold text-gray-800">
               {food.carbohydrate}g
             </span>
-            <p className="text-gray-500 text-xs">Carbs</p>
+            <p className="text-gray-500 text-xs">{isId ? "Karbo" : "Carbs"}</p>
           </div>
 
           <div>
             <span className="font-bold text-gray-800">{food.fat}g</span>
-            <p className="text-gray-500 text-xs">Fat</p>
+            <p className="text-gray-500 text-xs">{isId ? "Lemak" : "Fat"}</p>
           </div>
         </div>
 
@@ -85,7 +98,13 @@ const SearchFoodCard = ({ food }) => {
           className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-[#22C55E] text-white text-sm font-semibold hover:bg-[#16A34A] transition-all disabled:opacity-50"
         >
           <Plus size={16} />
-          {isAdding ? "Adding..." : "Add to Meal"}
+          {isAdding
+            ? isId
+              ? "Menambahkan..."
+              : "Adding..."
+            : isId
+              ? "Tambah ke Meal"
+              : "Add to Meal"}
         </button>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 const MacroBar = ({ label, percentage, color, bgTrack }) => (
   <div className="mb-3 last:mb-0">
@@ -16,6 +17,8 @@ const MacroBar = ({ label, percentage, color, bgTrack }) => (
 );
 
 const HeroDashboard = ({ user, userData }) => {
+  const { i18n } = useTranslation();
+  const isId = i18n.language?.startsWith("id");
   // ambil nama depan
   const displayName = userData?.fullName || user?.displayName || "User";
   const firstName = displayName.split(" ")[0];
@@ -57,7 +60,7 @@ const HeroDashboard = ({ user, userData }) => {
         <div className="flex justify-between items-start mb-6">
           <div>
             <h2 className="text-white text-sm font-medium opacity-90">
-              Hello,
+              {isId ? "Halo," : "Hello,"}
             </h2>
             <h1 className="text-white text-3xl font-bold lowercase tracking-tight">
               {firstName}!
@@ -71,7 +74,7 @@ const HeroDashboard = ({ user, userData }) => {
               {bmiStatus}
             </div>
             <div className="text-white/80 text-[10px] mt-2 font-medium text-right uppercase tracking-tighter">
-              Ideal Range:{" "}
+              {isId ? "Rentang Ideal:" : "Ideal Range:"}{" "}
               <span className="text-white font-bold">{idealRange}</span>
             </div>
           </div>
@@ -109,7 +112,7 @@ const HeroDashboard = ({ user, userData }) => {
                 {eaten.toLocaleString()}
               </span>
               <span className="text-[10px] opacity-90 uppercase tracking-[0.2em] font-bold">
-                kcal eaten
+                {isId ? "kkal dimakan" : "kcal eaten"}
               </span>
               {/* BMI Sub-label */}
               <div className="mt-2 bg-black/10 px-2 py-0.5 rounded-md text-[9px] font-bold">
@@ -124,12 +127,16 @@ const HeroDashboard = ({ user, userData }) => {
             <div className="hidden md:block text-white mb-6">
               <p className="font-bold text-xl">
                 {left > 0
-                  ? `${left.toLocaleString()} kcal left`
-                  : "Goal Reached!"}
+                  ? isId
+                    ? `${left.toLocaleString()} kkal tersisa`
+                    : `${left.toLocaleString()} kcal left`
+                  : isId
+                    ? "Target Tercapai!"
+                    : "Goal Reached!"}
               </p>
               <p className="text-xs opacity-80 uppercase tracking-widest">
                 Target: {goal.toLocaleString()} kcal (
-                {userData?.goal || "Stay Healthy"})
+                {userData?.goal || (isId ? "Tetap Sehat" : "Stay Healthy")})
               </p>
             </div>
 
@@ -145,14 +152,14 @@ const HeroDashboard = ({ user, userData }) => {
               />
 
               <MacroBar
-                label="Carbs"
+                label={isId ? "Karbo" : "Carbs"}
                 percentage={calcPercent(stats?.carbs || 0, 300)}
                 color="bg-[#60A5FA]"
                 bgTrack="bg-white/20"
               />
 
               <MacroBar
-                label="Fat"
+                label={isId ? "Lemak" : "Fat"}
                 percentage={calcPercent(stats?.fat || 0, 70)}
                 color="bg-[#F59E0B]"
                 bgTrack="bg-white/20"
