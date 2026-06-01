@@ -82,23 +82,30 @@ const isFoodSuitable = (food, userGoal, userStatus) => {
   return true;
 };
 
-// CONCURRENT LIMITER
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
 const processWithLimit = async (items, limit, asyncFn) => {
   const results = [];
   for (let i = 0; i < items.length; i += limit) {
     const chunk = items.slice(i, i + limit);
     const chunkResults = await Promise.all(chunk.map((item) => asyncFn(item)));
     results.push(...chunkResults);
-    if (i + limit < items.length) await sleep(300);
   }
   return results;
 };
 
 // Max food yang dikirim ke AI per request
-const MAX_AI_CANDIDATES = 10;
+const MAX_AI_CANDIDATES = 6;
 const MAX_RECOMMENDATION_ITEMS = 10;
+const AI_PER_ITEM_TIMEOUT_MS = Number(
+  process.env.AI_RECOMMENDATION_ITEM_TIMEOUT || 1800,
+);
+
+const withTimeout = (promise, ms) =>
+  Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("AI recommendation timeout")), ms);
+    }),
+  ]);
 
 // GENERATE RECOMMENDATION LIST
 const generateRecommendationList = async (userId) => {
@@ -132,9 +139,10 @@ const generateRecommendationList = async (userId) => {
   const filteredFoods = rawFoods.filter((food) =>
     isFoodSuitable(food, userGoal, userStatus),
   );
+  const candidatePool = filteredFoods.length > 0 ? filteredFoods : rawFoods;
 
   // Heuristic sort → ambil top MAX_AI_CANDIDATES saja ke AI
-  const topCandidates = filteredFoods
+  const topCandidates = candidatePool
     .map((food) => ({
       food,
       hScore: heuristicScore(food, userGoal, userStatus),
@@ -156,7 +164,10 @@ const generateRecommendationList = async (userId) => {
     async (food) => {
       try {
         const payload = buildAIPayload(user, food);
-        const aiData = await requestRecommendation(payload); // ← Redis cache + dedup aktif di sini
+        const aiData = await withTimeout(
+          requestRecommendation(payload), // ← Redis cache + dedup aktif di sini
+          AI_PER_ITEM_TIMEOUT_MS,
+        );
 
         if (!aiData?.is_recommended) return null;
 
@@ -183,7 +194,7 @@ const generateRecommendationList = async (userId) => {
 
   // Pastikan list tetap terisi stabil (maks 10) walau AI reject sebagian kandidat.
   const selectedIds = new Set(aiRankedFoods.map((food) => food.id));
-  const fallbackFoods = filteredFoods
+  const fallbackFoods = candidatePool
     .map((food) => ({
       ...food,
       matchScore: normalizeScore(heuristicScore(food, userGoal, userStatus)),
