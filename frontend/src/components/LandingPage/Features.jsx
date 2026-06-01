@@ -27,8 +27,7 @@ const Features = () => {
               Track Kalori Mudah
             </h3>
             <p className="text-gray-500 text-sm leading-relaxed">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit.
-              Asperiores, non?
+              Catat makanan dan minuman harianmu dengan cepat untuk memantau asupan kalori secara lebih teratur dan akurat.
             </p>
           </div>
         </div>
@@ -43,8 +42,7 @@ const Features = () => {
               Rekomendasi AI Personal
             </h3>
             <p className="text-gray-500 text-sm leading-relaxed">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Cumque
-              tempore cupiditate ab nam, maxime repellat!
+              Dapatkan rekomendasi pola makan dan target nutrisi yang disesuaikan dengan profil, tujuan, dan kebutuhan tubuhmu.
             </p>
           </div>
         </div>
@@ -59,8 +57,7 @@ const Features = () => {
               Analisis Nutrisi Lengkap
             </h3>
             <p className="text-gray-500 text-sm leading-relaxed">
-              Lorem ipsum dolor sit, amet consectetur adipisicing elit. Nam,
-              aperiam?
+              Lihat ringkasan nutrisi harian mulai dari kalori, protein, lemak, hingga karbohidrat untuk membantu menjaga pola hidup sehat.
             </p>
           </div>
         </div>
