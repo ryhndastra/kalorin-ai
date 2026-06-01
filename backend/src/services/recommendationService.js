@@ -207,10 +207,43 @@ const generateRecommendationList = async (userId) => {
     .filter((food) => !selectedIds.has(food.id))
     .sort((a, b) => b.matchScore - a.matchScore);
 
-  const finalFoods = [...aiRankedFoods, ...fallbackFoods].slice(
+  let finalFoods = [...aiRankedFoods, ...fallbackFoods].slice(
     0,
     MAX_RECOMMENDATION_ITEMS,
   );
+
+  // Jika masih kurang dari 10, isi dari pool database lain (tanpa call AI tambahan).
+  if (finalFoods.length < MAX_RECOMMENDATION_ITEMS) {
+    const needed = MAX_RECOMMENDATION_ITEMS - finalFoods.length;
+    const usedIds = new Set(finalFoods.map((food) => food.id));
+
+    const extraFoods = await prisma.food.findMany({
+      where: {
+        id: {
+          notIn: Array.from(usedIds),
+        },
+      },
+      take: Math.max(needed * 3, needed),
+    });
+
+    const rankedExtras = extraFoods
+      .filter((food) => isFoodSuitable(food, userGoal, userStatus))
+      .map((food) => ({
+        ...food,
+        matchScore: normalizeScore(heuristicScore(food, userGoal, userStatus)),
+        matchLabel: getScoreLabel(
+          normalizeScore(heuristicScore(food, userGoal, userStatus)),
+        ),
+        explanation: "Recommended from nutrition profile matching.",
+      }))
+      .sort((a, b) => b.matchScore - a.matchScore)
+      .slice(0, needed);
+
+    finalFoods = [...finalFoods, ...rankedExtras].slice(
+      0,
+      MAX_RECOMMENDATION_ITEMS,
+    );
+  }
 
   setCache(
     recommendationListCache,
