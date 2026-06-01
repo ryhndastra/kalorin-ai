@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useAuth } from "../context/AuthProvider";
 import { useUser } from "../context/UserContext";
 import { Ham, CircleCheck } from "lucide-react";
@@ -12,16 +12,7 @@ import RecommendationList from "../components/home/RecommendationList";
 const HomePage = () => {
   const { user } = useAuth();
   const { userData, loading, isInitialized } = useUser();
-  const [isSwitching, setIsSwitching] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsSwitching(false);
-    }, 450);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const showSkeleton = !isInitialized || loading || isSwitching;
+  const showSkeleton = !isInitialized || loading;
 
   if (showSkeleton) {
     return (

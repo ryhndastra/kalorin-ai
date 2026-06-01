@@ -50,11 +50,7 @@ export default function App() {
     <>
       <Toaster position="top-center" reverseOrder={false} />
       <Suspense
-        fallback={
-          <div className="min-h-screen bg-[#eefaf1] pt-20 text-center text-sm text-gray-500">
-            Loading...
-          </div>
-        }
+        fallback={null}
       >
         <Routes>
           <Route path="/analyze" element={<AnalyzePage />} />

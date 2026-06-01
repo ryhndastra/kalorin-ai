@@ -12,13 +12,12 @@ import LoadingCard from "../components/Analyze/LoadingCard";
 import SearchFoodTab from "../components/Analyze/SearchFoodTab";
 import { useUser } from "../context/UserContext";
 import { useAuth } from "../context/AuthContext";
-import AnalyzeSkeleton from "../components/skeletons/AnalyzeSkeleton";
 import { addMealLog } from "../api/trackService";
 
 const AnalyzePage = () => {
   // CONTEXT
   const { user } = useAuth();
-  const { isInitialized, loading: profileLoading, fetchProfile } = useUser();
+  const { fetchProfile } = useUser();
   const isGuest = !user;
 
   // URL SEARCH PARAMS
@@ -31,21 +30,8 @@ const AnalyzePage = () => {
   const [facingMode, setFacingMode] = useState("environment");
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
-  const [isSwitching, setIsSwitching] = useState(true);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isAddingMeal, setIsAddingMeal] = useState(false);
-
-  // PAGE LOADING
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsSwitching(false);
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const isPageLoading =
-    !isInitialized || (user && profileLoading) || isSwitching;
 
   // ANALYZE HANDLER
   const handleAnalyze = async (e) => {
@@ -62,16 +48,12 @@ const AnalyzePage = () => {
 
       setAnalysisResult(null);
 
-      // =========================
       // FORM DATA
-      // =========================
       const formData = new FormData();
 
       formData.append("file", selectedFile);
 
-      // =========================
       // API CALL
-      // =========================
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/scanner/scan-food`,
         {
@@ -215,16 +197,6 @@ const AnalyzePage = () => {
       }
     }
   }, [user]);
-
-  // SKELETON
-  if (isPageLoading) {
-    return (
-      <>
-        <Navbar user={user} loading={true} />
-        <AnalyzeSkeleton />
-      </>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-white pt-24 font-sans flex flex-col">

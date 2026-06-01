@@ -1,31 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Navbar from "../components/Navbar/Navbar";
 import MealsHero from "../components/meals/MealsHero";
 import MealsGrid from "../components/meals/MealsGrid";
-import MealsPageSkeleton from "../components/skeletons/MealsPageSkeleton";
 import { useAuth } from "../context/AuthProvider";
 
 const MealsPage = () => {
   const { user } = useAuth();
-  const [isSwitching, setIsSwitching] = useState(true);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsSwitching(false);
-    }, 450);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  // SKELETON LOADERS
-  if (isSwitching) {
-    return (
-      <div className="pt-20 bg-white min-h-screen">
-        <Navbar user={user} loading={true} />
-
-        <MealsPageSkeleton />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-white pt-20">
