@@ -25,9 +25,8 @@ const LandingHero = () => {
         </h1>
 
         <p className="text-gray-600 mb-10 max-w-xl text-sm md:text-base leading-relaxed">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Sit earum eum
-          quibusdam consectetur corporis asperiores recusandae odio ea dolorem
-          ratione.
+          Kalorin AI membantu Anda menghitung BMI, 
+          menganalisis kebutuhan nutrisi, dan menemukan rekomendasi makanan yang sesuai dengan kondisi tubuh secara cepat dan mudah
         </p>
 
         {/* Button */}
