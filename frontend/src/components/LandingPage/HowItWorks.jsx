@@ -23,8 +23,7 @@ const HowItWorks = () => {
                   Daftar & set goal
                 </h3>
                 <p className="text-gray-500 text-sm leading-relaxed">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Odit
-                  repellat totam excepturi blanditiis tempore voluptate!
+                  Buat akun dan tentukkan tujuan kesehatanmu, seperti menurunkan berat badan, menjaga berat badan, atau meningkatkan massa otot. Kalorin AI akan membantu kamu mencapai tujuan tersebut dengan memberikan rekomendasi makanan yang sesuai dengan kebutuhan nutrisi tubuhmu.
                 </p>
               </div>
             </div>
@@ -39,9 +38,7 @@ const HowItWorks = () => {
                   Catat makananmu
                 </h3>
                 <p className="text-gray-500 text-sm leading-relaxed">
-                  Lorem ipsum dolor sit, amet consectetur adipisicing elit.
-                  Voluptates enim voluptatem porro optio sunt quia nisi illo
-                  ipsum impedit placeat.
+                  Masukkan makanan yang kamu konsumsi setiap hari untuk memantau asupan kalori dan nutrisi. Sistem akan membantu mencatat protein, lemak, dan karbohidrat secara praktis dan terorganisir.
                 </p>
               </div>
             </div>
@@ -56,8 +53,7 @@ const HowItWorks = () => {
                   Dapat insight dari AI
                 </h3>
                 <p className="text-gray-500 text-sm leading-relaxed">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam
-                  maxime dolor culpa suscipit esse ab.
+                  Analisis pola makanmu dengan bantuan AI untuk mendapatkan rekomendasi yang lebih personal. Temukan insight tentang kebutuhan nutrisi, keseimbangan kalori, dan langkah yang dapat membantu mencapai tujuan kesehatanmu.
                 </p>
               </div>
             </div>
