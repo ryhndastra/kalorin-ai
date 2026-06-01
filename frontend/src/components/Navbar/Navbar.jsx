@@ -4,20 +4,27 @@ import { Menu, X } from "lucide-react";
 import { signOut } from "firebase/auth";
 import toast from "react-hot-toast";
 import { auth } from "../../config/firebase";
+import { useUser } from "../../context/UserContext";
 import NavLinks from "./NavLinks";
 import NavUserDropdown from "./NavUserDropdown";
 
 const Navbar = ({ user, loading, userData }) => {
+  const { userData: contextUserData } = useUser();
   const [isVisible, setIsVisible] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const navigate = useNavigate();
+  const resolvedUserData = userData || contextUserData;
   const displayName =
-    userData?.fullName ||
+    resolvedUserData?.fullName ||
     auth.currentUser?.displayName ||
     user?.displayName ||
     "User";
-  const avatarSrc = userData?.photoURL || user?.photoURL;
+  const avatarSrc =
+    resolvedUserData?.photoURL ||
+    user?.photoURL ||
+    auth.currentUser?.photoURL ||
+    "/images/default-avatar.png";
 
   // HIDE ON SCROLL
   useEffect(() => {
@@ -167,6 +174,10 @@ const Navbar = ({ user, loading, userData }) => {
                     <img
                       src={avatarSrc}
                       alt="Profile"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = "/images/default-avatar.png";
+                      }}
                       className="w-12 h-12 rounded-full object-cover"
                     />
                     <div>
