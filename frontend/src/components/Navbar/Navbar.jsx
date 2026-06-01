@@ -130,7 +130,7 @@ const Navbar = ({ user, loading, userData }) => {
 
       {/* MOBILE MENU */}
       <div
-        className={`fixed inset-0 z-40 lg:hidden transition-all duration-300 ${
+        className={`fixed inset-0 z-[80] lg:hidden transition-all duration-300 ${
           mobileOpen ? "pointer-events-auto" : "pointer-events-none"
         }`}
       >

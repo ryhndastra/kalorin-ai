@@ -159,7 +159,7 @@ const TrackPage = () => {
             transition={{
               duration: 0.25,
             }}
-            className="fixed bottom-6 inset-x-0 z-50 flex justify-center px-6"
+            className="fixed bottom-6 inset-x-0 z-30 flex justify-center px-6"
           >
             <div className="w-full max-w-[1600px]">
               <button
