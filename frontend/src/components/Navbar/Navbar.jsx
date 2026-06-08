@@ -10,6 +10,12 @@ import NavLinks from "./NavLinks";
 import NavUserDropdown from "./NavUserDropdown";
 import LanguageSwitcher from "../common/LanguageSwitcher";
 
+const isPlaceholderName = (value) => {
+  if (typeof value !== "string") return true;
+  const normalized = value.trim().toLowerCase();
+  return normalized.length === 0 || normalized === "user";
+};
+
 const Navbar = ({ user, loading, userData }) => {
   const { t, i18n } = useTranslation();
   const isId = i18n.language?.startsWith("id");
@@ -17,13 +23,9 @@ const Navbar = ({ user, loading, userData }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [avatarErrorSrc, setAvatarErrorSrc] = useState("");
   const navigate = useNavigate();
   const resolvedUserData = userData || contextUserData;
-  const isPlaceholderName = (value) => {
-    if (typeof value !== "string") return true;
-    const normalized = value.trim().toLowerCase();
-    return normalized.length === 0 || normalized === "user";
-  };
   const displayName = !isPlaceholderName(resolvedUserData?.fullName)
     ? resolvedUserData?.fullName
     : !isPlaceholderName(auth.currentUser?.displayName)
@@ -34,8 +36,8 @@ const Navbar = ({ user, loading, userData }) => {
   const avatarSrc =
     resolvedUserData?.photoURL ||
     user?.photoURL ||
-    auth.currentUser?.photoURL ||
-    "/images/default-avatar.png";
+    auth.currentUser?.photoURL;
+  const avatarInitial = displayName.charAt(0).toUpperCase();
 
   // HIDE ON SCROLL
   useEffect(() => {
@@ -196,15 +198,18 @@ const Navbar = ({ user, loading, userData }) => {
                 <>
                   {/* USER INFO */}
                   <div className="flex items-center gap-4 bg-[#F8FAFC] rounded-2xl p-4 border border-gray-100 mb-5">
-                    <img
-                      src={avatarSrc}
-                      alt={isId ? "Profil" : "Profile"}
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = "/images/default-avatar.png";
-                      }}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
+                    {avatarSrc && avatarErrorSrc !== avatarSrc ? (
+                      <img
+                        src={avatarSrc}
+                        alt={isId ? "Profil" : "Profile"}
+                        onError={() => setAvatarErrorSrc(avatarSrc)}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold border border-green-200">
+                        {avatarInitial}
+                      </div>
+                    )}
                     <div>
                       <p className="font-semibold text-gray-900 line-clamp-1">
                         {displayName}
