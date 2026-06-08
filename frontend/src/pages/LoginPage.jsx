@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { useTranslation } from "react-i18next";
@@ -12,11 +12,19 @@ import LanguageSwitcher from "../components/common/LanguageSwitcher";
 const LoginPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const registrationSuccess = Boolean(location.state?.registrationSuccess);
+
+  useEffect(() => {
+    if (location.state?.registeredEmail) {
+      setEmail(location.state.registeredEmail);
+    }
+  }, [location.state]);
 
   const validateLoginForm = () => {
     const errors = {};
@@ -104,6 +112,12 @@ const LoginPage = () => {
             {t("auth.login.subtitle")}
           </p>
         </div>
+
+        {registrationSuccess && (
+          <div className="mb-4 p-3 bg-green-50 text-green-700 text-sm rounded-xl text-center">
+            {t("auth.register.successLogin")}
+          </div>
+        )}
 
         {errorMsg && (
           <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl text-center">

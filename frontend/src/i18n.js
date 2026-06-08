@@ -65,6 +65,8 @@ const resources = {
           haveAccount: "Already have an account?",
           emailUsed: "Email is already registered. Please sign in.",
           registerFailed: "Failed to register. Please try again.",
+          successLogin:
+            "Account created successfully. Please sign in to continue.",
         },
       },
       landing: {
@@ -173,6 +175,8 @@ const resources = {
           haveAccount: "Sudah punya akun?",
           emailUsed: "Email sudah terdaftar. Silakan masuk.",
           registerFailed: "Gagal mendaftar. Silakan coba lagi.",
+          successLogin:
+            "Akun berhasil dibuat. Silakan masuk untuk melanjutkan.",
         },
       },
       landing: {
