@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import {
   createUserWithEmailAndPassword,
   updateProfile,
+  signOut,
   signInWithPopup,
 } from "firebase/auth";
 import { auth, googleProvider } from "../config/firebase";
@@ -76,7 +77,14 @@ const RegisterPage = () => {
       // sinkronkan data user ke Supabase (via Express) setelah register sukses
       await syncUserToDb(user, fullName);
 
-      navigate("/analyze");
+      await signOut(auth);
+      navigate("/login", {
+        replace: true,
+        state: {
+          registeredEmail: email.trim(),
+          registrationSuccess: true,
+        },
+      });
     } catch (error) {
       console.error("Error Register:", error);
       if (error.code === "auth/email-already-in-use") {
